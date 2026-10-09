@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Community Heatmap | Notion Road Intelligence</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#000000",
+            "primary-container": "#000000",
+            "inverse-primary": "#27272a",
+            "surface": "#f8fafc",
+            "surface-border": "#e2e8f0",
+            "text-primary": "#0f172a",
+            "text-muted": "#64748b",
+            "status-success": "#16a34a",
+            "status-warning": "#d97706",
+            "status-danger": "#dc2626"
+          },
+          fontFamily: {
+            "sans": ["Inter", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    #map { height: 560px; width: 100%; border-radius: 0.75rem; z-index: 10; }
+    .leaflet-popup-content-wrapper { border-radius: 0.75rem; padding: 0; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
+    .leaflet-popup-content { margin: 0; line-height: 1.4; }
+  </style>
+</head>
+<body class="bg-surface text-text-primary text-sm antialiased selection:bg-neutral-900 selection:text-white min-h-screen">
+
+  <!-- Top Universal Header -->
+  <header class="fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-md border-b border-surface-border z-50">
+    <div class="w-full h-full px-6 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white text-xl shadow-sm">🛣️</div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base text-text-primary tracking-tight truncate">CivicRoad Intelligence</span>
+              <span class="text-xs bg-neutral-100 text-black px-2 py-0.5 rounded border border-neutral-200 font-mono font-medium">v2.4-CIVIC</span>
+            </div>
+            <p class="text-xs text-text-muted truncate">Detect potholes, tag GPS location & build civic action heatmaps</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-4 flex-shrink-0">
+        <div class="hidden xl:flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-surface-border">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs text-slate-700 font-medium font-mono">CARTO Basemaps Auth OK</span>
+          </div>
+          <span class="text-slate-300 text-xs">|</span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="text-xs text-slate-700 font-medium font-mono">SQLite Connected</span>
+          </div>
+        </div>
+        <div class="hidden md:flex flex-col items-end">
+          <span class="text-[11px] text-text-muted uppercase font-mono tracking-wider">GIS NODE</span>
+          <span class="text-xs text-text-primary font-mono font-semibold">SEC-PUNE-411001</span>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm text-slate-700 font-medium">
+          <span class="material-symbols-outlined text-[20px]">person</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Left Sidebar GIS Filters -->
+  <aside class="fixed left-0 top-20 bottom-0 w-[280px] bg-white border-r border-surface-border z-40 overflow-y-auto flex flex-col justify-between p-4 shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
+    <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-surface-border pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] text-primary">layers</span>
+            <span class="font-semibold text-sm text-text-primary">GIS Layers</span>
+          </div>
+          <span class="text-[11px] text-primary uppercase font-mono font-semibold">CARTO</span>
+        </div>
+
+        <!-- Basemap Selection -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs text-slate-600 font-medium">Cartographic Basemap</label>
+          <select id="basemap-select" onchange="switchBasemap(this.value)" class="bg-slate-50 border border-slate-200 text-xs rounded-lg p-2 font-mono text-slate-800 focus:outline-none focus:border-primary">
+            <option value="voyager">CARTO Voyager (Authenticated)</option>
+            <option value="dark">CARTO Dark Matter (Night Vision)</option>
+            <option value="osm">OpenStreetMap Standard</option>
+          </select>
+          <div class="text-[11px] text-emerald-600 font-mono flex items-center gap-1 mt-0.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Key: cb1_42v7... verified
+          </div>
+        </div>
+
+        <!-- Layer Visualization Mode -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs text-slate-600 font-medium">Layer Visualization Mode</label>
+          <div class="grid grid-cols-3 gap-1 bg-slate-100 p-0.5 rounded-lg border border-slate-200">
+            <button type="button" id="btn-mode-both" onclick="setLayerMode('both')" class="py-1 text-center font-label-sm text-xs rounded bg-white text-black font-semibold shadow-xs">Both</button>
+            <button type="button" id="btn-mode-heat" onclick="setLayerMode('heat')" class="py-1 text-center font-label-sm text-xs rounded text-slate-600 hover:text-slate-900 font-medium">Heatmap</button>
+            <button type="button" id="btn-mode-pins" onclick="setLayerMode('pins')" class="py-1 text-center font-label-sm text-xs rounded text-slate-600 hover:text-slate-900 font-medium">Pins</button>
+          </div>
+        </div>
+
+        <div class="h-px bg-surface-border w-full"></div>
+
+        <!-- Severity Filter -->
+        <div class="flex flex-col gap-2">
+          <label class="text-xs text-slate-600 font-medium">Filter by Hazard Severity</label>
+          <div class="flex flex-col gap-1.5">
+            <button type="button" onclick="filterMap('all')" id="btn-flt-all" class="flex items-center justify-between px-3 py-1.5 rounded-lg bg-neutral-100 text-black border border-neutral-200 text-xs font-medium transition-all">
+              <span>All Reports</span>
+              <span class="font-mono" id="flt-count-all">...</span>
+            </button>
+            <button type="button" onclick="filterMap('High')" id="btn-flt-high" class="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-red-50 text-slate-700 hover:text-red-700 border border-slate-200 text-xs font-medium transition-all">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-red-500"></span>High Severity</span>
+              <span class="font-mono" id="flt-count-high">...</span>
+            </button>
+            <button type="button" onclick="filterMap('Medium')" id="btn-flt-med" class="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-amber-50 text-slate-700 hover:text-amber-800 border border-slate-200 text-xs font-medium transition-all">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-500"></span>Medium Severity</span>
+              <span class="font-mono" id="flt-count-med">...</span>
+            </button>
+            <button type="button" onclick="filterMap('Low')" id="btn-flt-low" class="flex items-center justify-between px-3 py-1.5 rounded-lg hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 border border-slate-200 text-xs font-medium transition-all">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span>Low Severity</span>
+              <span class="font-mono" id="flt-count-low">...</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="h-px bg-surface-border w-full"></div>
+
+        <!-- Quick Jump to Region -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-xs text-slate-600 font-medium">Quick Center Regional Cluster</label>
+          <div class="grid grid-cols-2 gap-1.5">
+            <button type="button" onclick="map.flyTo([18.5204, 73.8567], 13)" class="text-[11px] bg-slate-50 hover:bg-neutral-100 text-slate-700 hover:text-black border border-slate-200 py-1 px-2 rounded font-medium transition-colors">📍 Pune Center</button>
+            <button type="button" onclick="map.flyTo([19.0760, 72.8777], 12)" class="text-[11px] bg-slate-50 hover:bg-neutral-100 text-slate-700 hover:text-black border border-slate-200 py-1 px-2 rounded font-medium transition-colors">📍 Mumbai City</button>
+            <button type="button" onclick="map.flyTo([28.6139, 77.2090], 12)" class="text-[11px] bg-slate-50 hover:bg-neutral-100 text-slate-700 hover:text-black border border-slate-200 py-1 px-2 rounded font-medium transition-colors">📍 Delhi / NCR</button>
+            <button type="button" onclick="map.flyTo([12.9716, 77.5946], 12)" class="text-[11px] bg-slate-50 hover:bg-neutral-100 text-slate-700 hover:text-black border border-slate-200 py-1 px-2 rounded font-medium transition-colors">📍 Bengaluru</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2 pt-4 border-t border-surface-border">
+      <div class="flex items-center justify-between text-xs text-text-muted font-mono">
+        <span>API: CARTO RASTER</span>
+        <span class="text-emerald-600 font-semibold">200 OK</span>
+      </div>
+      <div class="text-center text-[11px] text-slate-400">© Municipal Road Survey & Analytics</div>
+    </div>
+  </aside>
+
+  <!-- Secondary Top Navigation Bar -->
+  <div class="pl-[280px]">
+    <div class="fixed top-20 left-[280px] right-0 h-12 bg-white/90 backdrop-blur-md border-b border-surface-border z-30 flex items-center px-6 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <nav class="flex items-center h-full gap-1">
+        <a href="/" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">dashboard</span>
+          <span>Overview</span>
+        </a>
+        <a href="/detect" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">search_check</span>
+          <span>1. Detect Photos</span>
+        </a>
+        <a href="/video" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">videocam</span>
+          <span>2. Video Survey</span>
+        </a>
+        <a href="/heatmap" class="h-full flex items-center px-4 transition-all gap-1.5 border-b-2 border-black text-black bg-neutral-100 font-semibold text-xs">
+          <span class="material-symbols-outlined text-[16px]">map</span>
+          <span>3. Heatmap</span>
+        </a>
+        <a href="/reports" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">assignment</span>
+          <span>4. Reports</span>
+        </a>
+        <a href="/road-search" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">saved_search</span>
+          <span>5. Road Search</span>
+        </a>
+        <a href="/bulk" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">batch_prediction</span>
+          <span>6. Bulk Survey</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="w-full pt-36 p-6 min-h-screen bg-surface">
+      <div class="flex flex-col w-full max-w-7xl mx-auto">
+
+        <!-- Page Header & Action Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-primary uppercase font-mono tracking-widest font-semibold">GEO-ANALYTICS ENGINE</span>
+              <span class="text-slate-300 text-xs">•</span>
+              <span class="text-xs text-emerald-600 font-mono font-semibold flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> LIVE SYNC
+              </span>
+            </div>
+            <h1 class="text-2xl font-bold text-text-primary tracking-tight">
+              🗺️ Community Pothole Heatmap — <span id="map-header-count">Loading...</span> reports across Indian Metros
+            </h1>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openDispatchModal()" class="h-9 px-4 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-sm transition-all" type="button">
+              <span class="material-symbols-outlined text-[18px]">send_and_archive</span>
+              <span>Dispatch Repair Crew</span>
+            </button>
+            <button onclick="exportGeoJSON()" class="h-9 px-3 bg-white hover:bg-slate-50 text-text-primary text-xs font-medium rounded-lg border border-surface-border flex items-center gap-1.5 font-mono shadow-xs transition-colors" type="button">
+              <span class="material-symbols-outlined text-[16px] text-slate-500">file_download</span>
+              <span>GeoJSON</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Interactive Map Wrapper Card -->
+        <div class="relative w-full rounded-2xl overflow-hidden bg-white border border-surface-border shadow-sm p-1.5 mb-6">
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 bg-slate-50 border-b border-surface-border rounded-t-xl">
+            <div class="relative w-full sm:w-80">
+              <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+              <input type="text" id="map-search-input" oninput="handleMapSearch(this.value)" placeholder="Search road or city on map..." class="w-full bg-white border border-slate-300 pl-9 pr-3 py-1.5 text-xs text-slate-900 rounded-lg focus:outline-none focus:border-black shadow-xs"/>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-mono text-slate-600">
+              <span id="active-density-indicator" class="flex items-center gap-1.5 px-2.5 py-1 bg-white border border-slate-200 rounded-md shadow-2xs font-semibold text-black">
+                <span class="w-2 h-2 rounded-full bg-black animate-pulse"></span>
+                <span id="density-text">Heatmap + Pins</span>
+              </span>
+              <button onclick="map.flyTo([18.5204, 73.8567], 12); document.getElementById('map-search-input').value=''; handleMapSearch('');" class="px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 rounded-md font-sans font-medium transition-colors">Reset View</button>
+            </div>
+          </div>
+          <div id="map"></div>
+        </div>
+
+        <!-- Live Metrics Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white p-4 rounded-xl border border-surface-border shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-neutral-100 text-black flex items-center justify-center font-bold text-lg font-mono">📍</div>
+            <div>
+              <div class="text-[11px] text-text-muted uppercase font-mono">Total Hotspots</div>
+              <div class="text-xl font-bold font-mono text-slate-900" id="kpi-total-spots">0</div>
+            </div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-red-200 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-red-50 text-red-600 flex items-center justify-center font-bold text-lg font-mono">⚠️</div>
+            <div>
+              <div class="text-[11px] text-red-600 uppercase font-mono font-semibold">High Severity</div>
+              <div class="text-xl font-bold font-mono text-red-700" id="kpi-high-spots">0</div>
+            </div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-amber-200 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg font-mono">⚡</div>
+            <div>
+              <div class="text-[11px] text-amber-600 uppercase font-mono font-semibold">Medium Hazards</div>
+              <div class="text-xl font-bold font-mono text-amber-700" id="kpi-med-spots">0</div>
+            </div>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-emerald-200 shadow-sm flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-lg font-mono">🟢</div>
+            <div>
+              <div class="text-[11px] text-emerald-600 uppercase font-mono font-semibold">Low / Monitored</div>
+              <div class="text-xl font-bold font-mono text-emerald-700" id="kpi-low-spots">0</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Dispatch Modal Dialog -->
+  <div id="dispatch-modal" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-surface-border">
+      <div class="flex items-center justify-between pb-3 border-b border-surface-border mb-4">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-black text-[24px]">construction</span>
+          <h3 class="font-bold text-base text-slate-900">Dispatch Asphalt Repair Crew</h3>
+        </div>
+        <button onclick="closeDispatchModal()" class="text-slate-400 hover:text-slate-700">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <div>
+          <label class="text-xs font-semibold text-slate-700">Target Road Segment</label>
+          <input type="text" id="dispatch-road" class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-800" value="MG Road & High Severity Hotspots"/>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-700">Assigned Municipal Depot</label>
+          <select class="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg p-2 text-xs text-slate-800">
+            <option>Pune Central Division 1 - Asphalt Quick Response</option>
+            <option>Mumbai Suburban Road Works Unit 4</option>
+            <option>Delhi PWD Highway Emergency Repair</option>
+            <option>Bengaluru BBMP Road Infrastructure Team</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-700">Repair Priority Level</label>
+          <span class="inline-block mt-1 px-2.5 py-1 bg-red-100 text-red-700 rounded text-xs font-semibold font-mono">PRIORITY 1 (CRITICAL CAVITY FILLING)</span>
+        </div>
+        <p class="text-xs text-slate-500 mt-2">
+          Submitting this dispatch issues work order instructions to field teams with geo-coordinates and image attachments from potholes.db.
+        </p>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 mt-6 pt-4 border-t border-surface-border">
+        <button onclick="closeDispatchModal()" type="button" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Cancel</button>
+        <button onclick="submitDispatch()" type="button" class="px-5 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-sm">
+          <span class="material-symbols-outlined text-[16px]">send</span>
+          <span>Confirm Dispatch</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CARTO_KEY = "cb1_42v7_1_2dc6571c05f28bc6841e688e";
+    let map = null;
+    let currentTileLayer = null;
+    let allReports = [];
+    let activeFilter = 'all';
+    let markersLayerGroup = L.layerGroup();
+    let heatLayer = null;
+    let currentLayerMode = 'both'; // 'both', 'heat', 'pins'
+
+    // Map Basemaps
+    const basemaps = {
+      voyager: `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
+      dark: `https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=${CARTO_KEY}`,
+      osm: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+    };
+
+    function initMap() {
+      map = L.map('map', {
+        center: [18.5204, 73.8567],
+        zoom: 12,
+        zoomControl: true
+      });
+
+      currentTileLayer = L.tileLayer(basemaps.voyager, {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap',
+        maxZoom: 19
+      }).addTo(map);
+
+      markersLayerGroup.addTo(map);
+      loadReportsData();
+    }
+
+    function switchBasemap(name) {
+      if (currentTileLayer) {
+        map.removeLayer(currentTileLayer);
+      }
+      currentTileLayer = L.tileLayer(basemaps[name] || basemaps.voyager, {
+        attribution: '&copy; CARTO &copy; OpenStreetMap',
+        maxZoom: 19
+      }).addTo(map);
+    }
+
+    function setLayerMode(mode) {
+      currentLayerMode = mode;
+      ['both', 'heat', 'pins'].forEach(m => {
+        const b = document.getElementById(`btn-mode-${m}`);
+        if (b) {
+          if (m === mode) {
+            b.className = "py-1 text-center font-label-sm text-xs rounded bg-white text-primary font-semibold shadow-xs";
+          } else {
+            b.className = "py-1 text-center font-label-sm text-xs rounded text-slate-600 hover:text-slate-900 font-medium";
+          }
+        }
+      });
+      const dTxt = document.getElementById('density-text');
+      if (dTxt) {
+        dTxt.innerText = mode === 'both' ? 'Heatmap + Pins' : (mode === 'heat' ? 'Density Heatmap' : 'Incident Pins');
+      }
+      renderMarkers();
+    }
+
+    function handleMapSearch(val) {
+      const q = (val || '').trim().toLowerCase();
+      if (!q) {
+        renderMarkers();
+        return;
+      }
+      const match = allReports.find(r => 
+        (r.road_name && r.road_name.toLowerCase().includes(q)) ||
+        (r.address && r.address.toLowerCase().includes(q))
+      );
+      if (match) {
+        map.flyTo([parseFloat(match.lat), parseFloat(match.lon)], 14);
+      }
+      renderMarkers();
+    }
+
+    async function loadReportsData() {
+      try {
+        const res = await fetch('/api/reports');
+        const data = await res.json();
+        allReports = data.reports || [];
+        updateMetricsAndMarkers();
+        if (allReports.length > 0 && map) {
+          const pts = allReports
+            .map(r => [parseFloat(r.lat), parseFloat(r.lon)])
+            .filter(p => !isNaN(p[0]) && !isNaN(p[1]));
+          if (pts.length > 0) {
+            map.fitBounds(pts, { padding: [40, 40], maxZoom: 14 });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load reports:", err);
+      }
+    }
+
+    function updateMetricsAndMarkers() {
+      const total = allReports.length;
+      let high = 0, med = 0, low = 0;
+
+      allReports.forEach(r => {
+        const s = (r.severity || 'Low').toLowerCase();
+        if (s === 'high') high++;
+        else if (s === 'medium') med++;
+        else low++;
+      });
+
+      document.getElementById('map-header-count').innerText = total;
+      document.getElementById('kpi-total-spots').innerText = total;
+      document.getElementById('kpi-high-spots').innerText = high;
+      document.getElementById('kpi-med-spots').innerText = med;
+      document.getElementById('kpi-low-spots').innerText = low;
+
+      document.getElementById('flt-count-all').innerText = total;
+      document.getElementById('flt-count-high').innerText = high;
+      document.getElementById('flt-count-med').innerText = med;
+      document.getElementById('flt-count-low').innerText = low;
+
+      renderMarkers();
+    }
+
+    function filterMap(severity) {
+      activeFilter = severity;
+      
+      ['all', 'high', 'med', 'low'].forEach(k => {
+        const btn = document.getElementById(`btn-flt-${k}`);
+        if (btn) {
+          btn.className = "flex items-center justify-between px-3 py-1.5 rounded-lg border text-xs font-medium transition-all " +
+            (k === severity.toLowerCase() || (severity === 'all' && k === 'all')
+              ? "bg-purple-50 text-primary border-purple-200 font-semibold"
+              : "hover:bg-slate-50 text-slate-700 border-slate-200");
+        }
+      });
+
+      renderMarkers();
+    }
+
+    function renderMarkers() {
+      markersLayerGroup.clearLayers();
+      if (heatLayer) {
+        map.removeLayer(heatLayer);
+        heatLayer = null;
+      }
+
+      const searchInput = document.getElementById('map-search-input');
+      const searchQ = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+      const filtered = allReports.filter(r => {
+        if (activeFilter !== 'all' && (r.severity || 'Low').toLowerCase() !== activeFilter.toLowerCase()) {
+          return false;
+        }
+        if (searchQ) {
+          const txt = `${r.road_name || ''} ${r.address || ''}`.toLowerCase();
+          if (!txt.includes(searchQ)) return false;
+        }
+        return true;
+      });
+
+      // 1. Render Density Heatmap Layer via leaflet.heat
+      if (currentLayerMode === 'both' || currentLayerMode === 'heat') {
+        const heatPoints = filtered.map(r => {
+          const lat = parseFloat(r.lat);
+          const lon = parseFloat(r.lon);
+          if (isNaN(lat) || isNaN(lon)) return null;
+          const sev = (r.severity || 'Low').toLowerCase();
+          const weight = sev === 'high' ? 1.0 : (sev === 'medium' ? 0.65 : 0.35);
+          return [lat, lon, weight * (Math.min(r.num_potholes || 1, 5) / 2.5)];
+        }).filter(Boolean);
+
+        if (heatPoints.length > 0 && typeof L.heatLayer === 'function') {
+          heatLayer = L.heatLayer(heatPoints, {
+            radius: 30,
+            blur: 20,
+            maxZoom: 16,
+            max: 1.0,
+            gradient: {
+              0.2: '#3b82f6',
+              0.4: '#10b981',
+              0.6: '#f59e0b',
+              0.8: '#f97316',
+              1.0: '#ef4444'
+            }
+          }).addTo(map);
+        }
+      }
+
+      // 2. Render Interactive Custom Pins
+      if (currentLayerMode === 'both' || currentLayerMode === 'pins') {
+        filtered.forEach(r => {
+          const lat = parseFloat(r.lat);
+          const lon = parseFloat(r.lon);
+          if (isNaN(lat) || isNaN(lon)) return;
+
+          const sev = (r.severity || 'Low').toLowerCase();
+          let color = '#22c55e'; // green
+          if (sev === 'high') color = '#ef4444'; // red
+          else if (sev === 'medium') color = '#f59e0b'; // amber
+
+          const customIcon = L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="position:relative; width: 24px; height: 24px;">
+                     <div style="position:absolute; inset: -4px; border-radius: 9999px; background-color: ${color}; opacity: 0.35;"></div>
+                     <div style="width: 24px; height: 24px; border-radius: 9999px; background-color: ${color}; border: 2px solid #ffffff; display: flex; align-items: center; justify-content: center; color: #ffffff; font-weight: 700; font-size: 10px; font-family: 'JetBrains Mono', monospace; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.2);">
+                       ${r.num_potholes || 1}
+                     </div>
+                   </div>`,
+            iconSize: [24, 24],
+            iconAnchor: [12, 12]
+          });
+
+          const marker = L.marker([lat, lon], { icon: customIcon });
+
+          const badgeClass = sev === 'high' ? 'bg-red-100 text-red-700' : (sev === 'medium' ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-800');
+          const imgUrl = r.image_url || '/sample_images/sample_city_pothole_annotated.jpg';
+
+          const popupContent = `
+            <div style="width: 260px; font-family: 'Inter', sans-serif;">
+              <div style="height: 120px; width: 100%; overflow: hidden; background: #f1f5f9; border-top-left-radius: 0.75rem; border-top-right-radius: 0.75rem;">
+                <img src="${imgUrl}" style="width: 100%; height: 100%; object-fit: cover;"/>
+              </div>
+              <div style="padding: 0.75rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;">
+                  <span class="${badgeClass}" style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;">${r.severity || 'Low'} Severity</span>
+                  <span style="font-size: 11px; color: #64748b; font-family: 'JetBrains Mono', monospace;">#${r.id}</span>
+                </div>
+                <h4 style="font-weight: 700; font-size: 13px; color: #0f172a; margin: 0 0 4px 0;">${r.road_name || 'Road Segment'}</h4>
+                <p style="font-size: 11px; color: #64748b; margin: 0 0 6px 0;">${r.address || ''}</p>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #334155; border-top: 1px solid #f1f5f9; padding-top: 6px;">
+                  <span>${r.num_potholes || 1} cavity(ies)</span>
+                  <span>Conf: ${(r.avg_conf || 0.85).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+
+          marker.bindPopup(popupContent);
+          markersLayerGroup.addLayer(marker);
+        });
+      }
+    }
+
+    function exportGeoJSON() {
+      const geojson = {
+        type: "FeatureCollection",
+        features: allReports.map(r => ({
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [parseFloat(r.lon), parseFloat(r.lat)]
+          },
+          properties: {
+            id: r.id,
+            road_name: r.road_name,
+            address: r.address,
+            severity: r.severity,
+            num_potholes: r.num_potholes,
+            avg_conf: r.avg_conf,
+            timestamp: r.timestamp
+          }
+        }))
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(geojson, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `civic_potholes_${Date.now()}.geojson`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function openDispatchModal() {
+      document.getElementById('dispatch-modal').classList.remove('hidden');
+    }
+
+    function closeDispatchModal() {
+      document.getElementById('dispatch-modal').classList.add('hidden');
+    }
+
+    function submitDispatch() {
+      alert("✅ Dispatch Order Dispatched! Quick Response Team notified with GPS waypoints.");
+      closeDispatchModal();
+    }
+
+    window.addEventListener('DOMContentLoaded', initMap);
+  </script>
+</body>
+</html>

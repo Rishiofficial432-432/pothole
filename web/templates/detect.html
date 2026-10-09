@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Detect Potholes | Notion Road Intelligence</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#000000",
+            "primary-container": "#000000",
+            "inverse-primary": "#27272a",
+            "surface": "#f8fafc",
+            "surface-border": "#e2e8f0",
+            "text-primary": "#0f172a",
+            "text-muted": "#64748b",
+            "status-success": "#16a34a",
+            "status-warning": "#d97706",
+            "status-danger": "#dc2626"
+          },
+          fontFamily: {
+            "sans": ["Inter", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-surface text-text-primary text-sm antialiased selection:bg-neutral-900 selection:text-white min-h-screen">
+
+  <!-- Top Universal Header -->
+  <header class="fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-md border-b border-surface-border z-50">
+    <div class="w-full h-full px-6 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white text-xl shadow-sm">🛣️</div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base text-text-primary tracking-tight truncate">CivicRoad Intelligence</span>
+              <span class="text-xs bg-neutral-100 text-black px-2 py-0.5 rounded border border-neutral-200 font-mono font-medium">v2.4-CIVIC</span>
+            </div>
+            <p class="text-xs text-text-muted truncate">Detect potholes, tag GPS location & build civic action heatmaps</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-4 flex-shrink-0">
+        <div class="hidden xl:flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-surface-border">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs text-slate-700 font-medium font-mono">YOLOv8 best.pt Active</span>
+          </div>
+          <span class="text-slate-300 text-xs">|</span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="text-xs text-slate-700 font-medium font-mono">SQLite Connected</span>
+          </div>
+        </div>
+        <div class="hidden md:flex flex-col items-end">
+          <span class="text-[11px] text-text-muted uppercase font-mono tracking-wider">MUNICIPAL NODE</span>
+          <span class="text-xs text-text-primary font-mono font-semibold">SEC-PUNE-411001</span>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm text-slate-700 font-medium">
+          <span class="material-symbols-outlined text-[20px]">person</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Left Sidebar Settings -->
+  <aside class="fixed left-0 top-20 bottom-0 w-[280px] bg-white border-r border-surface-border z-40 overflow-y-auto flex flex-col justify-between p-4 shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
+    <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-surface-border pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] text-primary">tune</span>
+            <span class="font-semibold text-sm text-text-primary">Inference Settings</span>
+          </div>
+          <span class="text-[11px] text-primary uppercase font-mono font-semibold">Config</span>
+        </div>
+
+        <!-- Confidence Threshold (Manual Input + Slider) -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-700 font-medium">Confidence Threshold</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] text-slate-400 font-mono">Manual:</span>
+              <input type="number" id="conf-manual-input" min="0.01" max="1.00" step="0.01" value="0.20" class="w-16 px-1.5 py-0.5 text-xs font-mono font-bold text-center bg-white border border-neutral-300 rounded focus:border-black focus:outline-none focus:ring-1 focus:ring-black text-black" oninput="handleConfManualInput(this.value)"/>
+            </div>
+          </div>
+          <input class="w-full accent-black bg-slate-100 h-1.5 rounded-lg appearance-none cursor-pointer border border-slate-200" id="conf-slider" max="0.95" min="0.01" step="0.01" type="range" value="0.20" oninput="handleSliderChange(this.value)"/>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+            <span>0.01</span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="quickSetConf(0.10)" class="px-1.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-slate-700 border border-neutral-200 font-medium">0.10</button>
+              <button type="button" onclick="quickSetConf(0.20)" class="px-1.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-slate-700 border border-neutral-200 font-medium">0.20</button>
+              <button type="button" onclick="quickSetConf(0.35)" class="px-1.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-slate-700 border border-neutral-200 font-medium">0.35</button>
+              <button type="button" onclick="quickSetConf(0.50)" class="px-1.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-slate-700 border border-neutral-200 font-medium">0.50</button>
+            </div>
+            <span>0.95</span>
+          </div>
+          <button onclick="triggerRerun()" class="mt-1 w-full py-1.5 px-3 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-xs" type="button">
+            <span class="material-symbols-outlined text-[16px]">refresh</span>
+            <span>Re-run at this Threshold</span>
+          </button>
+          <p class="text-[10px] text-slate-400 mt-0.5 leading-normal">
+            💡 Type any manual decimal (0.01–1.00) or drag slider. Lower threshold detects fainter cavities.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <span class="text-[11px] text-text-muted uppercase font-medium">Model Classes</span>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="text-xs bg-neutral-100 text-black px-2.5 py-1 rounded border border-neutral-200 font-mono flex items-center gap-1.5 font-medium">
+              <span class="w-1.5 h-1.5 rounded-full bg-black"></span>[0: pothole]
+            </span>
+            <span class="text-xs bg-slate-50 text-slate-500 px-2.5 py-1 rounded border border-slate-200 font-mono opacity-80">
+              [crack_surface]
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-px bg-surface-border w-full"></div>
+
+      <!-- Location Override & Geocoding -->
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-surface-border pb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-black">location_on</span>
+            <span class="font-semibold text-sm text-text-primary">Location Tag</span>
+          </div>
+          <span class="text-[10px] bg-neutral-100 text-slate-800 border border-neutral-300 px-2 py-0.5 rounded font-mono font-medium" id="gps-status-badge">AUTO: GPS PENDING</span>
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-700 font-semibold">Street / Area / City</label>
+            <div class="flex items-center bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 focus-within:border-black focus-within:ring-1 focus-within:ring-black">
+              <span class="material-symbols-outlined text-[16px] text-slate-400 mr-1.5">edit_road</span>
+              <input class="bg-transparent text-text-primary text-xs w-full focus:outline-none" id="road-name-input" type="text" value="Detecting location..." oninput="syncSidebarLocation(this.value)"/>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-slate-600 font-medium">Latitude</label>
+              <div class="flex items-center bg-slate-50 border border-slate-200 rounded px-2 py-1.5 focus-within:border-black focus-within:ring-1 focus-within:ring-black">
+                <span class="material-symbols-outlined text-[14px] text-slate-400 mr-1">my_location</span>
+                <input class="bg-transparent text-text-primary text-xs font-mono w-full focus:outline-none" id="lat-input" step="any" type="number" value="18.5204"/>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-slate-600 font-medium">Longitude</label>
+              <div class="flex items-center bg-slate-50 border border-slate-200 rounded px-2 py-1.5 focus-within:border-black focus-within:ring-1 focus-within:ring-black">
+                <span class="material-symbols-outlined text-[14px] text-slate-400 mr-1">explore</span>
+                <input class="bg-transparent text-text-primary text-xs font-mono w-full focus:outline-none" id="lon-input" step="any" type="number" value="73.8567"/>
+              </div>
+            </div>
+          </div>
+
+          <!-- Browser GPS Trigger Button -->
+          <button type="button" onclick="autoDetectBrowserGPS(true)" id="btn-detect-gps" class="w-full py-2 px-3 bg-black hover:bg-neutral-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all mt-0.5">
+            <span class="material-symbols-outlined text-[16px]">my_location</span>
+            <span id="btn-gps-text">Auto-Detect Browser GPS</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Preset Indian Roads -->
+      <div class="flex flex-col gap-1.5">
+        <span class="text-[11px] text-text-muted uppercase font-medium">Quick Location Presets</span>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button type="button" onclick="setPreset('MG Road, Pune', 18.5204, 73.8567)" class="text-[11px] bg-slate-50 hover:bg-neutral-100 text-slate-700 hover:text-black border border-slate-200 py-1 px-2 rounded text-center font-medium transition-colors">Pune (MG Rd)</button>
+          <button type="button" onclick="setPreset('NH-48 Mumbai-Pune Hwy', 18.7512, 73.4124)" class="text-[11px] bg-slate-50 hover:bg-neutral-100 text-slate-700 hover:text-black border border-slate-200 py-1 px-2 rounded text-center font-medium transition-colors">NH-48 Highway</button>
+          <button type="button" onclick="setPreset('Outer Ring Road, Bengaluru', 12.9249, 77.6782)" class="text-[11px] bg-slate-50 hover:bg-neutral-100 text-slate-700 hover:text-black border border-slate-200 py-1 px-2 rounded text-center font-medium transition-colors">Bengaluru ORR</button>
+          <button type="button" onclick="setPreset('Connaught Place, Delhi', 28.6315, 77.2167)" class="text-[11px] bg-slate-50 hover:bg-neutral-100 text-slate-700 hover:text-black border border-slate-200 py-1 px-2 rounded text-center font-medium transition-colors">Delhi CP</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2 pt-4 border-t border-surface-border">
+      <div class="flex items-center justify-between text-xs text-text-muted font-mono">
+        <span>DB: potholes.db</span>
+        <span class="text-emerald-600 font-semibold">SYNC OK</span>
+      </div>
+      <div class="text-center text-[11px] text-slate-400">© Municipal Road Survey & Analytics</div>
+    </div>
+  </aside>
+
+  <!-- Secondary Top Navigation Bar -->
+  <div class="pl-[280px]">
+    <div class="fixed top-20 left-[280px] right-0 h-12 bg-white/90 backdrop-blur-md border-b border-surface-border z-30 flex items-center px-6 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <nav class="flex items-center h-full gap-1">
+        <a href="/" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">dashboard</span>
+          <span>Overview</span>
+        </a>
+        <a href="/detect" class="h-full flex items-center px-4 transition-all gap-1.5 border-b-2 border-black text-black bg-neutral-100 font-semibold text-xs">
+          <span class="material-symbols-outlined text-[16px]">search_check</span>
+          <span>1. Detect Photos</span>
+        </a>
+        <a href="/video" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">videocam</span>
+          <span>2. Video Survey</span>
+        </a>
+        <a href="/heatmap" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">map</span>
+          <span>3. Heatmap</span>
+        </a>
+        <a href="/reports" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">assignment</span>
+          <span>4. Reports</span>
+        </a>
+        <a href="/road-search" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">saved_search</span>
+          <span>5. Road Search</span>
+        </a>
+        <a href="/bulk" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">batch_prediction</span>
+          <span>6. Bulk Survey</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="w-full pt-36 p-6 min-h-screen bg-surface">
+      <div class="flex flex-col w-full max-w-7xl mx-auto">
+
+        <!-- Video Survey Switch Banner -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl mb-5 shadow-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="material-symbols-outlined text-slate-800 text-[20px]">videocam</span>
+            <span class="text-xs text-slate-700 font-medium">Have dashcam footage or road inspection video?</span>
+            <span class="text-[10px] bg-neutral-200 text-slate-800 font-mono font-semibold px-2 py-0.5 rounded">NEW FEATURE</span>
+          </div>
+          <a href="/video" class="text-xs bg-black hover:bg-neutral-800 text-white font-medium px-3.5 py-1.5 rounded-lg flex items-center gap-1.5 transition-all shadow-xs">
+            <span>Switch to Video Survey Engine</span>
+            <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </a>
+        </div>
+
+        <!-- Status & Telemetry Header Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 bg-white px-5 py-3 rounded-xl mb-6 shadow-sm border border-surface-border">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs text-slate-900 uppercase tracking-wider font-semibold font-mono">Model Online</span>
+            </div>
+            <span class="text-slate-300 text-xs">•</span>
+            <span class="text-xs text-slate-600 font-mono">YOLOv8-Roads-Civic [best.pt]</span>
+            <span class="text-slate-300 text-xs">•</span>
+            <div class="flex items-center gap-1 bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
+              <span class="material-symbols-outlined text-[14px] text-black">bolt</span>
+              <span class="text-xs text-slate-900 font-mono font-medium" id="telemetry-latency">Inference: Ready</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-mono">INPUT: DASHCAM / MOBILE JPEG</span>
+            <span class="text-xs bg-slate-100 px-2 py-0.5 rounded text-slate-700 border border-slate-200 font-mono">PYTORCH</span>
+          </div>
+        </div>
+
+        <!-- Upload Dropzone Card -->
+        <div class="bg-white rounded-xl p-5 mb-6 shadow-sm border border-surface-border">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-12 h-12 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0 text-black">
+                <span class="material-symbols-outlined text-[28px]">add_photo_alternate</span>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm text-text-primary font-semibold truncate" id="file-name-display">Upload Road Photo for AI Analysis</span>
+                  <span class="text-xs bg-neutral-100 text-black border border-neutral-200 px-2 py-0.5 rounded font-mono font-semibold" id="file-status-badge">READY</span>
+                </div>
+                <span class="text-xs text-text-muted font-mono" id="file-meta-display">Drag & drop photo or test with verified Indian road samples below</span>
+              </div>
+            </div>
+
+            <!-- Upload & Sample Buttons -->
+            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+              <input type="file" id="file-input" accept="image/*" class="hidden" onchange="handleFileSelect(this)"/>
+              <button onclick="document.getElementById('file-input').click()" class="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-sm transition-all" type="button">
+                <span class="material-symbols-outlined text-[16px]">file_upload</span>
+                <span>Select Photo</span>
+              </button>
+              <button onclick="triggerRerun()" id="btn-run-detect" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-sm transition-all" type="button">
+                <span class="material-symbols-outlined text-[16px]">bolt</span>
+                <span>Run Detection</span>
+              </button>
+              <button onclick="loadSampleImage('city')" class="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all" type="button">
+                <span>🏙️ City Pothole</span>
+              </button>
+              <button onclick="loadSampleImage('highway')" class="px-3 py-2 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all" type="button">
+                <span>🛣️ Highway Pothole</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Drag and Drop interactive container -->
+          <div id="dropzone" onclick="document.getElementById('file-input').click()" class="mt-4 border-2 border-dashed border-slate-200 hover:border-black bg-slate-50/50 hover:bg-neutral-50 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-3xl text-slate-700 mb-1">cloud_upload</span>
+            <p class="text-xs font-semibold text-slate-700">Click to browse or drop road photograph here</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Supports JPG, PNG, WEBP • Automatically detects GPS coordinates from camera EXIF</p>
+          </div>
+        </div>
+
+        <!-- Processing Loader (Hidden initially) -->
+        <div id="loading-spinner" class="hidden bg-white border border-surface-border rounded-xl p-8 mb-6 text-center shadow-sm">
+          <div class="inline-block animate-spin w-8 h-8 border-4 border-black border-t-transparent rounded-full mb-3"></div>
+          <h3 class="text-sm font-semibold text-slate-800">Running YOLOv8 Neural Inference...</h3>
+          <p class="text-xs text-slate-500 mt-1">Analyzing road surface pixels, calculating cavity bounding polygons, and evaluating severity.</p>
+        </div>
+
+        <!-- Main Results Container (Shown when results available) -->
+        <div id="results-container">
+          
+          <!-- Main Canvas: Side-by-Side Verification -->
+          <div class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6">
+            <!-- Left: Original Image -->
+            <div class="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border border-surface-border">
+              <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-surface-border">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[18px] text-slate-500">camera_alt</span>
+                  <span class="text-xs font-semibold text-text-primary">Source Optical Feed</span>
+                </div>
+                <span class="text-[11px] text-text-muted font-mono bg-white px-2 py-0.5 rounded border border-slate-200">RAW RGB</span>
+              </div>
+              <div class="relative aspect-video w-full bg-slate-100 overflow-hidden flex items-center justify-center">
+                <img id="source-image" class="w-full h-full object-contain select-none" src="/sample_images/sample_city_pothole_annotated.jpg" alt="Source Road Surface"/>
+                <div class="absolute bottom-3 left-3 bg-white/90 backdrop-blur-sm px-2.5 py-1 rounded text-slate-700 text-xs font-mono border border-slate-200 shadow-sm font-medium">
+                  INPUT FRAME
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: YOLO Bounding Overlays -->
+            <div class="flex flex-col bg-white rounded-xl overflow-hidden shadow-sm border border-surface-border">
+              <div class="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-surface-border">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[18px] text-primary">analytics</span>
+                  <span class="text-xs font-semibold text-text-primary">Inference Canvas (Overlays)</span>
+                </div>
+                <span id="canvas-badge" class="text-xs bg-black text-white px-2.5 py-0.5 rounded font-mono font-semibold">DETECTIONS</span>
+              </div>
+              <div class="relative aspect-video w-full bg-slate-100 overflow-hidden flex items-center justify-center">
+                <img id="annotated-image" class="w-full h-full object-contain select-none" src="/sample_images/sample_city_pothole_annotated.jpg" alt="Annotated Detections"/>
+                <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-md px-2.5 py-1 rounded text-primary text-xs font-mono flex items-center gap-1.5 border border-slate-200 shadow-sm font-semibold">
+                  <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                  <span id="active-conf-indicator">CONF_FLOOR: 0.35</span>
+                </div>
+              </div>
+            </div>
+
+          <!-- Auto-Resolved Street / Area / City Banner (Always Visible) -->
+          <div class="bg-gradient-to-r from-blue-50 via-slate-50 to-indigo-50 border border-blue-200/80 rounded-xl p-4 mb-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div class="flex items-center gap-3.5">
+              <div class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center flex-shrink-0 shadow-xs">
+                <span class="material-symbols-outlined text-[22px]">location_on</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] font-mono uppercase tracking-wider font-bold text-blue-800">Street / Area / City</span>
+                  <span class="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">AUTO-RESOLVED & VISIBLE</span>
+                </div>
+                <div class="text-base font-bold text-slate-900 font-sans tracking-tight mt-0.5" id="banner-street-area-city">Resolving location...</div>
+                <div class="text-xs text-slate-600 font-mono" id="banner-address-coords">📍 18.52040, 73.85670 • Verified Coordinates</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 w-full md:w-auto">
+              <button type="button" onclick="const inp=document.getElementById('main-street-area-city-input'); if(inp){ inp.focus(); inp.scrollIntoView({behavior:'smooth', block:'center'}); }" class="px-3.5 py-1.5 bg-white border border-blue-300 hover:bg-blue-50 text-blue-800 text-xs font-semibold rounded-lg shadow-xs flex items-center gap-1.5 transition-all">
+                <span class="material-symbols-outlined text-[16px]">edit</span>
+                <span>Edit Name Below</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Key Metrics Grid -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Metric 1: Count -->
+            <div class="bg-white p-4 rounded-xl flex flex-col justify-between shadow-sm border border-surface-border">
+              <div class="flex items-center justify-between text-text-muted mb-2">
+                <span class="text-xs tracking-wider uppercase font-mono font-medium text-slate-500">Potholes Detected</span>
+                <span class="material-symbols-outlined text-[20px] text-primary">crisis_alert</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span id="kpi-count" class="text-3xl font-bold text-text-primary leading-tight font-mono">1</span>
+                <span class="text-xs text-text-muted font-mono">hazard cavities</span>
+              </div>
+              <div class="mt-2 text-slate-500 text-xs flex items-center gap-1">
+                <span class="text-emerald-600 font-semibold">100%</span> target verified
+              </div>
+            </div>
+
+            <!-- Metric 2: Confidence -->
+            <div class="bg-white p-4 rounded-xl flex flex-col justify-between shadow-sm border border-surface-border">
+              <div class="flex items-center justify-between text-text-muted mb-2">
+                <span class="text-xs tracking-wider uppercase font-mono font-medium text-slate-500">Avg Confidence</span>
+                <span class="material-symbols-outlined text-[20px] text-slate-900">speed</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span id="kpi-conf" class="text-3xl font-bold text-text-primary leading-tight font-mono">0.892</span>
+                <span class="text-xs text-emerald-600 font-mono font-semibold flex items-center">
+                  <span class="material-symbols-outlined text-[14px]">arrow_upward</span>High
+                </span>
+              </div>
+              <div class="mt-2 text-slate-500 text-xs flex items-center gap-1">
+                High model certainty index
+              </div>
+            </div>
+
+            <!-- Metric 3: Max Area -->
+            <div class="bg-white p-4 rounded-xl flex flex-col justify-between shadow-sm border border-surface-border">
+              <div class="flex items-center justify-between text-text-muted mb-2">
+                <span class="text-xs tracking-wider uppercase font-mono font-medium text-slate-500">Max Cavity Area</span>
+                <span class="material-symbols-outlined text-[20px] text-blue-600">aspect_ratio</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span id="kpi-area" class="text-3xl font-bold text-text-primary leading-tight font-mono">4.18%</span>
+                <span class="text-xs text-text-muted font-mono">of road frame</span>
+              </div>
+              <div class="mt-2 text-slate-500 text-xs" id="kpi-pixel-size">
+                Critical depression zone
+              </div>
+            </div>
+
+            <!-- Metric 4: Overall Severity -->
+            <div class="bg-white p-4 rounded-xl flex flex-col justify-between relative overflow-hidden shadow-sm border border-red-200" id="kpi-sev-card">
+              <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-red-100 rounded-full blur-xl pointer-events-none"></div>
+              <div class="flex items-center justify-between text-text-muted mb-2">
+                <span class="text-xs tracking-wider uppercase font-mono font-medium text-red-700">Overall Severity</span>
+                <span class="material-symbols-outlined text-[20px] text-red-600">warning</span>
+              </div>
+              <div class="flex items-baseline gap-2">
+                <span id="kpi-sev" class="text-2xl font-bold text-red-700 leading-tight font-mono tracking-tight">HIGH</span>
+                <span class="px-2 py-0.5 rounded bg-red-100 border border-red-200 text-red-700 text-xs font-mono font-bold animate-pulse">
+                  URGENT ACTION
+                </span>
+              </div>
+              <div class="mt-2 text-red-600 text-xs font-mono font-medium">
+                Municipal Priority Level 1
+              </div>
+            </div>
+          </div>
+
+          <!-- Detection Results Audit Table -->
+          <div class="flex flex-col bg-white rounded-xl mb-6 overflow-hidden shadow-sm border border-surface-border">
+            <div class="px-5 py-3 bg-slate-50 border-b border-surface-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px] text-primary">table_chart</span>
+                <span class="text-xs font-semibold text-text-primary">Detection Telemetry Matrix</span>
+                <span id="table-count-badge" class="text-xs bg-white border border-slate-200 px-2 py-0.5 rounded text-slate-600 font-mono font-medium">1 item</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xs text-slate-500 font-mono">CLASS: POTHOLE</span>
+              </div>
+            </div>
+            <div class="overflow-x-auto w-full">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="bg-slate-50/70 border-b border-surface-border text-slate-600 text-[11px] uppercase font-mono tracking-wider">
+                    <th class="px-5 py-2.5 font-semibold">#</th>
+                    <th class="px-5 py-2.5 font-semibold">Class</th>
+                    <th class="px-5 py-2.5 font-semibold">Confidence</th>
+                    <th class="px-5 py-2.5 font-semibold">Severity</th>
+                    <th class="px-5 py-2.5 font-semibold">Bounding Box [x1, y1, x2, y2]</th>
+                    <th class="px-5 py-2.5 font-semibold text-right">Area (%)</th>
+                  </tr>
+                </thead>
+                <tbody id="detections-tbody" class="font-mono divide-y divide-slate-100">
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="px-5 py-2.5 text-slate-500">#01</td>
+                    <td class="px-5 py-2.5">
+                      <span class="bg-neutral-100 text-black border border-neutral-200 px-2 py-0.5 rounded text-xs font-medium">pothole</span>
+                    </td>
+                    <td class="px-5 py-2.5 font-semibold text-slate-900">0.892</td>
+                    <td class="px-5 py-2.5">
+                      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-red-100 border border-red-200 text-red-700 text-xs font-semibold">
+                        <span class="w-1.5 h-1.5 rounded-full bg-red-600"></span>High
+                      </span>
+                    </td>
+                    <td class="px-5 py-2.5 text-slate-600 text-xs">[240, 180, 890, 620]</td>
+                    <td class="px-5 py-2.5 text-right font-semibold text-red-600">4.18%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Save to Civic Database Card -->
+          <div class="bg-white p-5 rounded-xl shadow-sm border border-surface-border mb-6">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+              <div class="flex flex-col gap-1 max-w-xl">
+                <div class="flex items-center gap-1.5 text-primary">
+                  <span class="material-symbols-outlined text-[18px]">pin_drop</span>
+                  <span class="text-xs font-mono uppercase tracking-wider font-semibold">Spatial Metadata Ready</span>
+                </div>
+                <div class="flex items-baseline gap-2 flex-wrap">
+                  <span class="text-sm text-text-primary font-mono font-semibold" id="summary-coords">📍 18.52040, 73.85670</span>
+                  <span class="text-xs text-slate-500 font-semibold" id="summary-road">(MG Road, Pune, Maharashtra)</span>
+                </div>
+                <div class="mt-2.5 flex flex-col gap-1 w-full">
+                  <label class="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[16px] text-primary">location_city</span>
+                    <span>Street / Area / City (Auto-filled & Editable):</span>
+                  </label>
+                  <div class="flex items-center bg-slate-50 border border-slate-300 rounded-lg px-3 py-1.5 focus-within:border-black focus-within:ring-1 focus-within:ring-black">
+                    <input id="main-street-area-city-input" type="text" class="bg-transparent text-xs font-semibold text-slate-900 w-full focus:outline-none" oninput="syncMainLocation(this.value)" placeholder="Auto-detecting street / area / city..."/>
+                  </div>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">
+                  Append these detected pothole coordinates, severity score, and camera evidence permanently into the SQLite database (`potholes.db`) to update the community heatmap.
+                </p>
+              </div>
+              <div class="flex flex-wrap items-center gap-3 flex-shrink-0">
+                <button id="btn-save-report" onclick="triggerSaveReport()" class="h-10 px-5 bg-primary hover:bg-inverse-primary text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 shadow-sm transition-all active:scale-[0.98]" type="button">
+                  <span class="material-symbols-outlined text-[18px]">save</span>
+                  <span>💾 Save to Civic Database</span>
+                </button>
+                <a href="/heatmap" class="h-10 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all">
+                  <span class="material-symbols-outlined text-[18px] text-black">map</span>
+                  <span>View on Heatmap</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- Success Toast Confirmation -->
+            <div id="save-toast" class="hidden mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-lg flex items-center justify-between transition-all">
+              <div class="flex items-center gap-3">
+                <span class="material-symbols-outlined text-emerald-600 text-[24px]">check_circle</span>
+                <div class="flex flex-col">
+                  <span class="text-xs text-slate-900 font-semibold" id="toast-title">✅ Report saved successfully!</span>
+                  <span class="text-xs text-slate-700" id="toast-msg">Record added to potholes.db and pinned to civic heatmap.</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono text-emerald-700 bg-white border border-emerald-200 px-2 py-0.5 rounded font-medium">STATUS 200 OK</span>
+                <button onclick="document.getElementById('save-toast').classList.add('hidden')" class="text-slate-400 hover:text-slate-700" type="button">
+                  <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // State
+    let currentDetectionData = null;
+    let selectedFile = null;
+
+    // Presets
+    function setPreset(name, lat, lon) {
+      document.getElementById('road-name-input').value = name;
+      const mainInput = document.getElementById('main-street-area-city-input');
+      if (mainInput) mainInput.value = name;
+      const bannerRoad = document.getElementById('banner-street-area-city');
+      if (bannerRoad) bannerRoad.innerText = name;
+      document.getElementById('lat-input').value = lat;
+      document.getElementById('lon-input').value = lon;
+      document.getElementById('summary-road').innerText = `(${name})`;
+      document.getElementById('summary-coords').innerText = `📍 ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+      const bannerCoords = document.getElementById('banner-address-coords');
+      if (bannerCoords) bannerCoords.innerText = `📍 ${lat.toFixed(5)}, ${lon.toFixed(5)} • Verified Coordinates`;
+      // Trigger reverse geocoding to resolve the full Street / Area / City format
+      reverseGeocodeAndUpdate(lat, lon);
+    }
+
+    function syncMainLocation(val) {
+      const sb = document.getElementById('road-name-input');
+      if (sb) sb.value = val;
+      const summaryRoad = document.getElementById('summary-road');
+      if (summaryRoad) summaryRoad.innerText = `(${val})`;
+      const bannerRoad = document.getElementById('banner-street-area-city');
+      if (bannerRoad) bannerRoad.innerText = val;
+    }
+
+    function syncSidebarLocation(val) {
+      const mainInput = document.getElementById('main-street-area-city-input');
+      if (mainInput) mainInput.value = val;
+      const summaryRoad = document.getElementById('summary-road');
+      if (summaryRoad) summaryRoad.innerText = `(${val})`;
+      const bannerRoad = document.getElementById('banner-street-area-city');
+      if (bannerRoad) bannerRoad.innerText = val;
+    }
+
+    // Handle File Selection
+    function handleFileSelect(input) {
+      if (input.files && input.files[0]) {
+        selectedFile = input.files[0];
+        document.getElementById('file-name-display').innerText = selectedFile.name;
+        document.getElementById('file-meta-display').innerText = `${(selectedFile.size / 1024).toFixed(1)} KB • Image Loaded`;
+        document.getElementById('file-status-badge').innerText = 'SELECTED';
+        runInference(selectedFile);
+      }
+    }
+
+    // Drag and Drop
+    const dropzone = document.getElementById('dropzone');
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('border-black', 'bg-neutral-100'); });
+    dropzone.addEventListener('dragleave', () => { dropzone.classList.remove('border-black', 'bg-neutral-100'); });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-black', 'bg-neutral-100');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        selectedFile = e.dataTransfer.files[0];
+        document.getElementById('file-name-display').innerText = selectedFile.name;
+        document.getElementById('file-meta-display').innerText = `${(selectedFile.size / 1024).toFixed(1)} KB • Dropped File`;
+        document.getElementById('file-status-badge').innerText = 'SELECTED';
+        runInference(selectedFile);
+      }
+    });
+
+    // Sample Image Loader
+    async function loadSampleImage(type) {
+      const filename = type === 'highway' ? 'sample_highway_pothole.jpg' : 'sample_city_pothole.jpg';
+      const sampleUrl = `/sample_images/${filename}`;
+      const roadName = type === 'highway' ? 'NH-48 Expressway Segment' : 'MG Road Central, Pune';
+      const lat = type === 'highway' ? 18.7512 : 18.5204;
+      const lon = type === 'highway' ? 73.4124 : 73.8567;
+
+      setPreset(roadName, lat, lon);
+      document.getElementById('file-name-display').innerText = filename;
+      document.getElementById('file-meta-display').innerText = `Verified Indian Road Sample Dataset`;
+      document.getElementById('file-status-badge').innerText = 'SAMPLE';
+
+      // Fetch sample as blob
+      try {
+        const res = await fetch(sampleUrl);
+        const blob = await res.blob();
+        selectedFile = new File([blob], filename, { type: 'image/jpeg' });
+        runInference(selectedFile);
+      } catch (err) {
+        console.error("Error loading sample:", err);
+      }
+    }
+
+    // Run Inference via /api/detect
+    async function runInference(file) {
+      const conf = parseFloat(document.getElementById('conf-manual-input')?.value || document.getElementById('conf-slider')?.value || 0.20);
+      const roadName = document.getElementById('road-name-input').value;
+      const lat = document.getElementById('lat-input').value;
+      const lon = document.getElementById('lon-input').value;
+
+      const formData = new FormData();
+      formData.append('image', file);
+      formData.append('conf', conf);
+      formData.append('road_name', roadName);
+      formData.append('fallback_lat', lat);
+      formData.append('fallback_lon', lon);
+
+      document.getElementById('loading-spinner').classList.remove('hidden');
+      const startTime = performance.now();
+
+      try {
+        const response = await fetch('/api/detect', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        const duration = (performance.now() - startTime).toFixed(1);
+        document.getElementById('telemetry-latency').innerText = `Inference: ${duration}ms`;
+
+        if (response.ok) {
+          currentDetectionData = data;
+          renderDetectionResults(data);
+        } else {
+          alert("Detection error: " + (data.error || "Unknown error"));
+        }
+      } catch (err) {
+        console.error("Inference request failed:", err);
+        alert("Failed to connect to backend server on port 5000.");
+      } finally {
+        document.getElementById('loading-spinner').classList.add('hidden');
+      }
+    }
+
+    // Render Detection Results
+    function renderDetectionResults(data) {
+      // Images
+      if (data.original_data_url) {
+        document.getElementById('source-image').src = data.original_data_url;
+      }
+      if (data.annotated_data_url) {
+        document.getElementById('annotated-image').src = data.annotated_data_url;
+      }
+
+      // GPS extraction status
+      const gpsBadge = document.getElementById('gps-status-badge');
+      if (data.gps_source === 'EXIF') {
+        gpsBadge.innerText = 'GPS: EXIF CAMERA';
+        gpsBadge.className = 'text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-mono font-medium';
+        document.getElementById('lat-input').value = data.lat;
+        document.getElementById('lon-input').value = data.lon;
+      } else {
+        gpsBadge.innerText = 'GPS: FALLBACK / PRESET';
+        gpsBadge.className = 'text-[10px] bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-mono font-medium';
+      }
+
+      if (data.road_name) {
+        const roadInput = document.getElementById('road-name-input');
+        if (roadInput) roadInput.value = data.road_name;
+        const mainInput = document.getElementById('main-street-area-city-input');
+        if (mainInput) mainInput.value = data.road_name;
+        const bannerRoad = document.getElementById('banner-street-area-city');
+        if (bannerRoad) bannerRoad.innerText = data.road_name;
+      }
+
+      // Summary label
+      document.getElementById('summary-coords').innerText = `📍 ${Number(data.lat).toFixed(5)}, ${Number(data.lon).toFixed(5)}`;
+      document.getElementById('summary-road').innerText = `(${data.road_name || 'Survey Segment'})`;
+      const bannerCoords = document.getElementById('banner-address-coords');
+      if (bannerCoords) bannerCoords.innerText = `📍 ${Number(data.lat).toFixed(5)}, ${Number(data.lon).toFixed(5)} • Verified Coordinates`;
+
+      const numDets = data.detections ? data.detections.length : 0;
+      document.getElementById('canvas-badge').innerText = `${numDets} DETECTIONS`;
+      document.getElementById('table-count-badge').innerText = `${numDets} items`;
+
+      // KPIs
+      document.getElementById('kpi-count').innerText = numDets;
+      document.getElementById('kpi-conf').innerText = data.avg_conf ? data.avg_conf.toFixed(3) : '0.000';
+      document.getElementById('kpi-area').innerText = data.max_area_pct ? `${data.max_area_pct.toFixed(2)}%` : '0.00%';
+      
+      const sev = data.severity || (numDets > 0 ? 'Medium' : 'None');
+      const sevElem = document.getElementById('kpi-sev');
+      const sevCard = document.getElementById('kpi-sev-card');
+      sevElem.innerText = sev.toUpperCase();
+
+      if (sev === 'High') {
+        sevCard.className = "bg-white p-4 rounded-xl flex flex-col justify-between relative overflow-hidden shadow-sm border border-red-200";
+        sevElem.className = "text-2xl font-bold text-red-700 leading-tight font-mono tracking-tight";
+      } else if (sev === 'Medium') {
+        sevCard.className = "bg-white p-4 rounded-xl flex flex-col justify-between relative overflow-hidden shadow-sm border border-amber-200";
+        sevElem.className = "text-2xl font-bold text-amber-600 leading-tight font-mono tracking-tight";
+      } else {
+        sevCard.className = "bg-white p-4 rounded-xl flex flex-col justify-between relative overflow-hidden shadow-sm border border-emerald-200";
+        sevElem.className = "text-2xl font-bold text-emerald-600 leading-tight font-mono tracking-tight";
+      }
+
+      // Table rows
+      const tbody = document.getElementById('detections-tbody');
+      tbody.innerHTML = '';
+
+      const currentConf = document.getElementById('conf-slider').value;
+
+      if (numDets === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-6 text-center text-slate-500 font-sans">
+          <div class="flex flex-col items-center gap-2">
+            <span class="material-symbols-outlined text-3xl text-amber-500">info</span>
+            <span class="font-semibold text-slate-800 text-sm">No cavities detected at confidence threshold ${parseFloat(currentConf).toFixed(2)}</span>
+            <span class="text-xs text-slate-500 max-w-md">Some potholes or shaded asphalt defects have lower contrast. Try lowering the threshold to 0.15 or 0.10.</span>
+            <button onclick="quickSetConf(0.15)" class="mt-1 px-3 py-1 bg-neutral-100 text-black border border-neutral-200 rounded text-xs font-semibold hover:bg-neutral-200">Set Confidence to 0.15 & Re-scan</button>
+          </div>
+        </td></tr>`;
+      } else {
+        data.detections.forEach((d, idx) => {
+          const row = document.createElement('tr');
+          row.className = "hover:bg-slate-50 transition-colors";
+          const bboxStr = `[${d.bbox.map(n => Math.round(n)).join(', ')}]`;
+          const rowSev = d.confidence > 0.65 ? 'High' : (d.confidence > 0.35 ? 'Medium' : 'Low');
+          const badgeClass = rowSev === 'High' ? 'bg-red-100 text-red-700 border-red-200' : (rowSev === 'Medium' ? 'bg-amber-100 text-amber-800 border-amber-200' : 'bg-emerald-100 text-emerald-800 border-emerald-200');
+
+          row.innerHTML = `
+            <td class="px-5 py-2.5 text-slate-500">#${String(idx + 1).padStart(2, '0')}</td>
+            <td class="px-5 py-2.5">
+              <span class="bg-neutral-100 text-black border border-neutral-200 px-2 py-0.5 rounded text-xs font-medium">${d.class_name || d.class || 'pothole'}</span>
+            </td>
+            <td class="px-5 py-2.5 font-semibold text-slate-900">${d.confidence.toFixed(3)}</td>
+            <td class="px-5 py-2.5">
+              <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border text-xs font-semibold ${badgeClass}">
+                ${rowSev}
+              </span>
+            </td>
+            <td class="px-5 py-2.5 text-slate-600 text-xs">${bboxStr}</td>
+            <td class="px-5 py-2.5 text-right font-semibold text-slate-800">${(d.area_pct || 0).toFixed(2)}%</td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+    }
+
+    // Helper functions for manual input, slider, and re-scan
+    let sliderDebounce = null;
+
+    function handleConfManualInput(val) {
+      let v = parseFloat(val);
+      if (isNaN(v)) return;
+      v = Math.max(0.01, Math.min(1.00, v));
+
+      const slider = document.getElementById('conf-slider');
+      if (slider) slider.value = v;
+
+      const ind = document.getElementById('active-conf-indicator');
+      if (ind) ind.innerText = `CONF_FLOOR: ${v.toFixed(2)}`;
+
+      clearTimeout(sliderDebounce);
+      sliderDebounce = setTimeout(() => {
+        if (selectedFile) {
+          runInference(selectedFile);
+        }
+      }, 400);
+    }
+
+    function handleSliderChange(val) {
+      let v = parseFloat(val);
+      if (isNaN(v)) return;
+      v = Math.max(0.01, Math.min(1.00, v));
+      const formatted = v.toFixed(2);
+
+      const manualInput = document.getElementById('conf-manual-input');
+      if (manualInput && document.activeElement !== manualInput) {
+        manualInput.value = formatted;
+      }
+
+      const ind = document.getElementById('active-conf-indicator');
+      if (ind) ind.innerText = `CONF_FLOOR: ${formatted}`;
+
+      clearTimeout(sliderDebounce);
+      sliderDebounce = setTimeout(() => {
+        if (selectedFile) {
+          runInference(selectedFile);
+        }
+      }, 350);
+    }
+
+    function quickSetConf(newConf) {
+      const slider = document.getElementById('conf-slider');
+      const manualInput = document.getElementById('conf-manual-input');
+      if (slider) slider.value = newConf;
+      if (manualInput) manualInput.value = parseFloat(newConf).toFixed(2);
+      handleSliderChange(newConf);
+    }
+
+    function triggerRerun() {
+      if (selectedFile) {
+        runInference(selectedFile);
+      } else {
+        loadSampleImage('city');
+      }
+    }
+
+    // Save to Database
+    async function triggerSaveReport() {
+      if (!currentDetectionData) {
+        alert("Please run detection on an image first!");
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-report');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">sync</span><span>Saving...</span>';
+
+      try {
+        const locVal = (document.getElementById('main-street-area-city-input')?.value || document.getElementById('road-name-input')?.value || 'Survey Road').trim();
+        const payload = {
+          lat: currentDetectionData.lat,
+          lon: currentDetectionData.lon,
+          road_name: locVal,
+          address: currentDetectionData.address || `${locVal} (${Number(currentDetectionData.lat).toFixed(4)}, ${Number(currentDetectionData.lon).toFixed(4)})`,
+          detections: currentDetectionData.detections,
+          saved_image_rel: currentDetectionData.saved_image_rel
+        };
+
+        const res = await fetch('/api/reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          const toast = document.getElementById('save-toast');
+          document.getElementById('toast-title').innerText = '✅ Report saved successfully!';
+          document.getElementById('toast-msg').innerText = `${currentDetectionData.detections.length} pothole(s) at ${payload.lat.toFixed(5)}, ${payload.lon.toFixed(5)} committed to potholes.db`;
+          toast.classList.remove('hidden');
+          btn.innerHTML = '<span class="material-symbols-outlined text-[18px] text-emerald-300">done_all</span><span>Saved to Database</span>';
+          btn.classList.add('bg-emerald-600');
+        } else {
+          alert("Error saving report.");
+          btn.disabled = false;
+          btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span><span>💾 Save to Civic Database</span>';
+        }
+      } catch (err) {
+        console.error("Save error:", err);
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">save</span><span>💾 Save to Civic Database</span>';
+      }
+    }
+
+    // ==========================================
+    // AUTOMATIC BROWSER GPS DETECTION & REVERSE GEOCODING
+    // ==========================================
+    async function autoDetectBrowserGPS(userInitiated = false) {
+      const badge = document.getElementById('gps-status-badge');
+      const btnText = document.getElementById('btn-gps-text');
+      const roadInput = document.getElementById('road-name-input');
+      const latInput = document.getElementById('lat-input');
+      const lonInput = document.getElementById('lon-input');
+
+      if (!('geolocation' in navigator)) {
+        if (badge) {
+          badge.className = 'text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-mono font-medium';
+          badge.innerText = 'GPS NOT SUPPORTED';
+        }
+        if (userInitiated) alert('Geolocation is not supported by your browser or environment.');
+        return;
+      }
+
+      if (badge) {
+        badge.className = 'text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-mono font-medium animate-pulse';
+        badge.innerText = 'ACQUIRING GPS...';
+      }
+      if (btnText) btnText.innerText = 'Acquiring Browser GPS...';
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const accuracy = Math.round(position.coords.accuracy || 10);
+
+          if (latInput) latInput.value = lat.toFixed(6);
+          if (lonInput) lonInput.value = lon.toFixed(6);
+
+          const summaryCoords = document.getElementById('summary-coords');
+          if (summaryCoords) summaryCoords.innerText = `📍 ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+
+          if (badge) {
+            badge.className = 'text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-mono font-semibold flex items-center gap-1';
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span><span>LIVE GPS (±${accuracy}m)</span>`;
+          }
+          if (btnText) {
+            btnText.innerText = 'GPS Acquired';
+            setTimeout(() => { if (btnText) btnText.innerText = 'Auto-Detect Browser GPS'; }, 3000);
+          }
+
+          // Reverse geocode to corridor/road name
+          await reverseGeocodeAndUpdate(lat, lon);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error);
+          let errMsg = 'GPS UNAVAILABLE';
+          let detailedMsg = 'Could not acquire browser GPS location.';
+          if (error.code === error.PERMISSION_DENIED) {
+            errMsg = 'GPS PERMISSION DENIED';
+            detailedMsg = 'Browser location permission was denied. Please allow location access in your browser address bar.';
+          } else if (error.code === error.TIMEOUT) {
+            errMsg = 'GPS TIMEOUT';
+            detailedMsg = 'Acquiring GPS timed out.';
+          }
+
+          if (badge) {
+            badge.className = 'text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded font-mono font-medium';
+            badge.innerText = errMsg;
+          }
+          if (btnText) btnText.innerText = 'Auto-Detect Browser GPS';
+          if (roadInput && (roadInput.value === 'Detecting location...' || !roadInput.value)) {
+            roadInput.value = 'Urban Corridor (GPS Denied - Manual)';
+          }
+          if (userInitiated) alert(detailedMsg);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    async function reverseGeocodeAndUpdate(lat, lon) {
+      const roadInput = document.getElementById('road-name-input');
+      const mainInput = document.getElementById('main-street-area-city-input');
+      const summaryRoad = document.getElementById('summary-road');
+      const summaryCoords = document.getElementById('summary-coords');
+      const bannerRoad = document.getElementById('banner-street-area-city');
+      const bannerCoords = document.getElementById('banner-address-coords');
+
+      if (summaryCoords) summaryCoords.innerText = `📍 ${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)}`;
+      if (bannerCoords) bannerCoords.innerText = `📍 ${Number(lat).toFixed(5)}, ${Number(lon).toFixed(5)} • Verified Coordinates`;
+
+      if (roadInput && (roadInput.value.includes('...') || !roadInput.value)) roadInput.value = 'Resolving location...';
+      if (mainInput && (mainInput.value.includes('...') || !mainInput.value)) mainInput.value = 'Resolving location...';
+      if (bannerRoad) bannerRoad.innerText = 'Resolving Street / Area / City...';
+
+      try {
+        const resp = await fetch(`/api/reverse-geocode?lat=${lat}&lon=${lon}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.road_name) {
+            if (roadInput) roadInput.value = data.road_name;
+            if (mainInput) mainInput.value = data.road_name;
+            if (bannerRoad) bannerRoad.innerText = data.road_name;
+            if (summaryRoad) summaryRoad.innerText = `(${data.road_name})`;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Reverse geocode failed:', e);
+      }
+
+      const fallbackName = `Corridor (${Number(lat).toFixed(4)}, ${Number(lon).toFixed(4)})`;
+      if (roadInput) roadInput.value = fallbackName;
+      if (mainInput) mainInput.value = fallbackName;
+      if (bannerRoad) bannerRoad.innerText = fallbackName;
+      if (summaryRoad) summaryRoad.innerText = `(${fallbackName})`;
+    }
+
+    // Automatically detect GPS and resolve location on page load!
+    window.addEventListener('DOMContentLoaded', () => {
+      const latVal = parseFloat(document.getElementById('lat-input')?.value || 18.5204);
+      const lonVal = parseFloat(document.getElementById('lon-input')?.value || 73.8567);
+      
+      // 1. Immediately auto-fill and show visible Street / Area / City for current coordinates
+      reverseGeocodeAndUpdate(latVal, lonVal);
+
+      // 2. Query live browser GPS if permission granted
+      autoDetectBrowserGPS(false);
+
+      // 3. Debounced listener for latitude / longitude inputs
+      let geoDebounce = null;
+      function handleCoordChange() {
+        clearTimeout(geoDebounce);
+        geoDebounce = setTimeout(() => {
+          const cLat = parseFloat(document.getElementById('lat-input')?.value);
+          const cLon = parseFloat(document.getElementById('lon-input')?.value);
+          if (!isNaN(cLat) && !isNaN(cLon)) {
+            reverseGeocodeAndUpdate(cLat, cLon);
+          }
+        }, 400);
+      }
+      document.getElementById('lat-input')?.addEventListener('input', handleCoordChange);
+      document.getElementById('lon-input')?.addEventListener('input', handleCoordChange);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Road Search | Photographic Cavity Evidence</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#000000",
+            "primary-container": "#000000",
+            "inverse-primary": "#27272a",
+            "surface": "#f8fafc",
+            "surface-border": "#e2e8f0",
+            "text-primary": "#0f172a",
+            "text-muted": "#64748b",
+            "status-success": "#16a34a",
+            "status-warning": "#d97706",
+            "status-danger": "#dc2626"
+          },
+          fontFamily: {
+            "sans": ["Inter", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-surface text-text-primary text-sm antialiased selection:bg-neutral-900 selection:text-white min-h-screen">
+
+  <!-- Top Universal Header -->
+  <header class="fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-md border-b border-surface-border z-50">
+    <div class="w-full h-full px-6 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white text-xl shadow-sm">🛣️</div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base text-text-primary tracking-tight truncate">CivicRoad Intelligence</span>
+              <span class="text-xs bg-neutral-100 text-black px-2 py-0.5 rounded border border-neutral-200 font-mono font-medium">v2.4-CIVIC</span>
+            </div>
+            <p class="text-xs text-text-muted truncate">Detect potholes, tag GPS location & build civic action heatmaps</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-4 flex-shrink-0">
+        <div class="hidden xl:flex items-center gap-3 bg-neutral-100 px-3 py-1.5 rounded-lg border border-neutral-200">
+          <span class="material-symbols-outlined text-[16px] text-black">photo_library</span>
+          <span class="text-xs text-slate-900 font-medium font-mono">Photographic Evidence Mode (No Map Plot)</span>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm text-slate-700 font-medium">
+          <span class="material-symbols-outlined text-[20px]">person</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Left Sidebar Search Shortcuts -->
+  <aside class="fixed left-0 top-20 bottom-0 w-[280px] bg-white border-r border-surface-border z-40 overflow-y-auto flex flex-col justify-between p-4 shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
+    <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-surface-border pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] text-primary">search</span>
+            <span class="font-semibold text-sm text-text-primary">Search Filters</span>
+          </div>
+          <span class="text-[11px] text-primary uppercase font-mono font-semibold">Visual</span>
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label class="text-xs text-slate-600 font-medium">Popular Roads & Highways</label>
+          <div class="flex flex-col gap-1.5">
+            <button onclick="quickSearch('MG Road')" class="text-left px-3 py-2 bg-slate-50 hover:bg-neutral-100 hover:text-black rounded-lg border border-slate-200 text-xs font-medium transition-colors flex items-center justify-between">
+              <span>🛣️ MG Road, Pune</span>
+              <span class="text-[10px] font-mono text-slate-400">Urban</span>
+            </button>
+            <button onclick="quickSearch('NH-48')" class="text-left px-3 py-2 bg-slate-50 hover:bg-neutral-100 hover:text-black rounded-lg border border-slate-200 text-xs font-medium transition-colors flex items-center justify-between">
+              <span>🛣️ NH-48 Mumbai-Pune Hwy</span>
+              <span class="text-[10px] font-mono text-slate-400">Highway</span>
+            </button>
+            <button onclick="quickSearch('Outer Ring Road')" class="text-left px-3 py-2 bg-slate-50 hover:bg-neutral-100 hover:text-black rounded-lg border border-slate-200 text-xs font-medium transition-colors flex items-center justify-between">
+              <span>🛣️ Outer Ring Road</span>
+              <span class="text-[10px] font-mono text-slate-400">Arterial</span>
+            </button>
+            <button onclick="quickSearch('Connaught')" class="text-left px-3 py-2 bg-slate-50 hover:bg-neutral-100 hover:text-black rounded-lg border border-slate-200 text-xs font-medium transition-colors flex items-center justify-between">
+              <span>🛣️ Connaught Place</span>
+              <span class="text-[10px] font-mono text-slate-400">Central</span>
+            </button>
+            <button onclick="quickSearch('Baner')" class="text-left px-3 py-2 bg-slate-50 hover:bg-neutral-100 hover:text-black rounded-lg border border-slate-200 text-xs font-medium transition-colors flex items-center justify-between">
+              <span>🛣️ Baner Road Corridor</span>
+              <span class="text-[10px] font-mono text-slate-400">Suburban</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="h-px bg-surface-border w-full"></div>
+
+        <div class="p-3 bg-neutral-100/70 border border-neutral-200 rounded-xl flex flex-col gap-1.5">
+          <div class="flex items-center gap-1.5 text-black text-xs font-semibold">
+            <span class="material-symbols-outlined text-[16px]">visibility</span>
+            <span>Direct Optical Evidence</span>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-relaxed">
+            Searching a road renders high-resolution camera frames with machine-vision bounding boxes instead of abstract map markers.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-2 pt-4 border-t border-surface-border">
+      <div class="flex items-center justify-between text-xs text-text-muted font-mono">
+        <span>INDEX: potholes.db</span>
+        <span class="text-emerald-600 font-semibold">ACTIVE</span>
+      </div>
+      <div class="text-center text-[11px] text-slate-400">© Municipal Road Survey & Analytics</div>
+    </div>
+  </aside>
+
+  <!-- Secondary Top Navigation Bar -->
+  <div class="pl-[280px]">
+    <div class="fixed top-20 left-[280px] right-0 h-12 bg-white/90 backdrop-blur-md border-b border-surface-border z-30 flex items-center px-6 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <nav class="flex items-center h-full gap-1">
+        <a href="/" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">dashboard</span>
+          <span>Overview</span>
+        </a>
+        <a href="/detect" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">search_check</span>
+          <span>1. Detect Photos</span>
+        </a>
+        <a href="/video" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">videocam</span>
+          <span>2. Video Survey</span>
+        </a>
+        <a href="/heatmap" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">map</span>
+          <span>3. Heatmap</span>
+        </a>
+        <a href="/reports" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">assignment</span>
+          <span>4. Reports</span>
+        </a>
+        <a href="/road-search" class="h-full flex items-center px-4 transition-all gap-1.5 border-b-2 border-black text-black bg-neutral-100 font-semibold text-xs">
+          <span class="material-symbols-outlined text-[16px]">saved_search</span>
+          <span>5. Road Search</span>
+        </a>
+        <a href="/bulk" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">batch_prediction</span>
+          <span>6. Bulk Survey</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="w-full pt-36 p-6 min-h-screen bg-surface">
+      <div class="flex flex-col gap-6 w-full max-w-7xl mx-auto">
+
+        <!-- Search Header Bar -->
+        <div class="bg-white border border-surface-border p-6 rounded-2xl shadow-sm flex flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-black uppercase font-mono tracking-widest font-semibold">PHOTOGRAPHIC SURVEY ARCHIVE</span>
+              <span class="text-slate-300 text-xs">•</span>
+              <span class="text-xs text-slate-500 font-mono">Visual Evidence Index</span>
+            </div>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+              🔎 Road Cavity Visual Search
+            </h1>
+            <p class="text-xs text-slate-500">
+              Query any street, highway corridor, or municipal avenue to inspect actual photographic pothole evidence with bounding box telemetry.
+            </p>
+          </div>
+
+          <!-- Large Search Bar -->
+          <div class="relative w-full">
+            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-[22px]">search</span>
+            <input type="text" id="road-query-input" value="MG Road" onkeydown="if(event.key==='Enter') executeSearch()" placeholder="Type road name (e.g., MG Road, NH-48, Baner, Outer Ring Road)..." class="w-full pl-11 pr-28 py-3 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-black/20 focus:border-black transition-all shadow-xs"/>
+            <button onclick="executeSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 px-4 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg shadow-sm transition-all flex items-center gap-1.5" type="button">
+              <span>Search Road</span>
+            </button>
+          </div>
+
+          <!-- Quick Suggestion Chips -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs text-slate-400">Suggestions:</span>
+            <button onclick="quickSearch('MG Road')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-neutral-200 hover:text-black text-slate-700 text-xs font-medium transition-colors">MG Road</button>
+            <button onclick="quickSearch('NH-48')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-neutral-200 hover:text-black text-slate-700 text-xs font-medium transition-colors">NH-48 Highway</button>
+            <button onclick="quickSearch('Baner')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-neutral-200 hover:text-black text-slate-700 text-xs font-medium transition-colors">Baner Road</button>
+            <button onclick="quickSearch('Connaught')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-neutral-200 hover:text-black text-slate-700 text-xs font-medium transition-colors">Connaught Place</button>
+            <button onclick="quickSearch('Outer Ring Road')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-neutral-200 hover:text-black text-slate-700 text-xs font-medium transition-colors">Outer Ring Road</button>
+          </div>
+        </div>
+
+        <!-- Result Summary Bar -->
+        <div class="flex items-center justify-between text-xs text-slate-500 font-mono">
+          <span id="results-count-text">Found photographic evidence for query "MG Road"</span>
+          <span class="bg-neutral-100 text-black px-2 py-0.5 rounded border border-neutral-200 font-semibold">MACHINE VISION ANNOTATED</span>
+        </div>
+
+        <!-- Evidence Gallery Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="evidence-cards-container">
+          <!-- Cards injected via JS -->
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- High-Res Fullscreen Evidence Modal -->
+  <div id="full-modal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl border border-surface-border max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-surface-border mb-4">
+        <div>
+          <h3 class="font-bold text-base text-slate-900" id="modal-road-title">Road Cavity Optical Evidence</h3>
+          <p class="text-xs text-slate-500 font-mono" id="modal-road-meta">1920x1080 • YOLOv8 Bounding Boxes</p>
+        </div>
+        <button onclick="closeFullModal()" class="text-slate-400 hover:text-slate-700">
+          <span class="material-symbols-outlined text-[24px]">close</span>
+        </button>
+      </div>
+
+      <div class="w-full aspect-video bg-black rounded-xl overflow-hidden flex items-center justify-center mb-4">
+        <img id="modal-full-img" src="" alt="Full Photographic Evidence" class="w-full h-full object-contain"/>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4">
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-[10px] text-slate-400 font-mono uppercase">Detected Hazards</span>
+          <div class="text-lg font-bold font-mono text-slate-900" id="modal-hazard-count">1</div>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-[10px] text-slate-400 font-mono uppercase">Assessed Severity</span>
+          <div class="text-lg font-bold font-mono text-red-600" id="modal-severity">HIGH</div>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-[10px] text-slate-400 font-mono uppercase">Model Confidence</span>
+          <div class="text-lg font-bold font-mono text-slate-900" id="modal-confidence">0.89</div>
+        </div>
+        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <span class="text-[10px] text-slate-400 font-mono uppercase">Geotag Coordinates</span>
+          <div class="text-sm font-bold font-mono text-slate-900 truncate" id="modal-coords">18.5204, 73.8567</div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end pt-3 border-t border-surface-border">
+        <button onclick="closeFullModal()" class="px-5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg">Close Evidence View</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentResults = [];
+
+    async function executeSearch() {
+      const q = document.getElementById('road-query-input').value.trim();
+      if (!q) return;
+
+      document.getElementById('results-count-text').innerText = `Searching photographic database for "${q}"...`;
+
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        currentResults = data.reports || [];
+        renderEvidenceCards(q);
+      } catch (err) {
+        console.error("Search failed:", err);
+      }
+    }
+
+    function quickSearch(name) {
+      document.getElementById('road-query-input').value = name;
+      executeSearch();
+    }
+
+    function renderEvidenceCards(query) {
+      const container = document.getElementById('evidence-cards-container');
+      container.innerHTML = '';
+
+      document.getElementById('results-count-text').innerText = `Found ${currentResults.length} photographic evidence card(s) matching "${query}"`;
+
+      if (currentResults.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full p-12 text-center bg-white rounded-2xl border border-surface-border text-slate-400">
+            <span class="material-symbols-outlined text-4xl text-slate-300 mb-2">image_not_supported</span>
+            <h3 class="text-sm font-semibold text-slate-700">No photographic evidence registered for "${query}"</h3>
+            <p class="text-xs text-slate-400 mt-1">Try querying "MG Road", "NH-48", "Baner", or "Outer Ring Road".</p>
+          </div>
+        `;
+        return;
+      }
+
+      currentResults.forEach((r, idx) => {
+        const card = document.createElement('div');
+        const imgUrl = r.image_url || '/sample_images/sample_city_pothole_annotated.jpg';
+        const sev = (r.severity || 'Low').toLowerCase();
+        const sevBadge = sev === 'high' ? 'bg-red-50 text-red-700 border-red-200' : (sev === 'medium' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-emerald-50 text-emerald-800 border-emerald-200');
+
+        card.className = "bg-white border border-surface-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col";
+        card.innerHTML = `
+          <!-- High-Res Photo Container -->
+          <div class="relative aspect-video w-full bg-slate-900 overflow-hidden group cursor-pointer" onclick="openFullModal(${idx})">
+            <img src="${imgUrl}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" alt="Pothole Evidence"/>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+            
+            <!-- Floating Badges -->
+            <div class="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-md text-xs font-mono font-semibold text-slate-800 border border-white/60 shadow-sm flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[14px] text-purple-600">center_focus_strong</span>
+              <span>${r.num_potholes || 1} CAVITY DETECTED</span>
+            </div>
+            
+            <div class="absolute top-3 right-3 text-xs px-2.5 py-1 rounded-md font-mono font-semibold border ${sevBadge} bg-white shadow-sm">
+              ${r.severity || 'Low'} Severity
+            </div>
+
+            <div class="absolute bottom-3 left-3 right-3 flex items-center justify-between text-white text-xs font-mono">
+              <span class="truncate">${r.road_name || 'Road Segment'}</span>
+              <span class="bg-black/40 px-2 py-0.5 rounded backdrop-blur-xs flex items-center gap-1">
+                <span class="material-symbols-outlined text-[14px]">fullscreen</span> Click to expand
+              </span>
+            </div>
+          </div>
+
+          <!-- Cavity Dimensions & Telemetry Body -->
+          <div class="p-5 flex flex-col gap-3 flex-1 justify-between">
+            <div class="flex flex-col gap-1.5">
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-sm text-slate-900">${r.road_name || 'Survey Segment'}</h3>
+                <span class="text-xs text-slate-400 font-mono">ID: #${r.id}</span>
+              </div>
+              <p class="text-xs text-slate-500">${r.address || ''}</p>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 font-mono text-xs">
+              <div class="flex flex-col">
+                <span class="text-[10px] text-slate-400 uppercase">Avg Conf</span>
+                <span class="font-semibold text-slate-800">${(r.avg_conf || 0.85).toFixed(3)}</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-slate-400 uppercase">Max Cavity %</span>
+                <span class="font-semibold text-purple-700">${(r.max_area_pct || 3.4).toFixed(2)}%</span>
+              </div>
+              <div class="flex flex-col">
+                <span class="text-[10px] text-slate-400 uppercase">GPS Coord</span>
+                <span class="font-semibold text-slate-800 truncate">${Number(r.lat).toFixed(4)}, ${Number(r.lon).toFixed(4)}</span>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+              <span class="text-[11px] text-slate-400 font-mono">Surface: Weathered Bitumen / Asphalt</span>
+              <button onclick="openFullModal(${idx})" class="text-xs text-primary font-semibold hover:underline flex items-center gap-1">
+                <span>Inspect Camera Frame</span>
+                <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function openFullModal(idx) {
+      const r = currentResults[idx];
+      if (!r) return;
+
+      document.getElementById('modal-road-title').innerText = `${r.road_name || 'Road Segment'} — Cavity Visual Evidence`;
+      document.getElementById('modal-road-meta').innerText = `${r.address || ''} • Timestamp: ${r.timestamp || '2026-09-29'}`;
+      document.getElementById('modal-full-img').src = r.image_url || '/sample_images/sample_city_pothole_annotated.jpg';
+      document.getElementById('modal-hazard-count').innerText = `${r.num_potholes || 1} instance(s)`;
+      document.getElementById('modal-severity').innerText = (r.severity || 'Low').toUpperCase();
+      document.getElementById('modal-confidence').innerText = (r.avg_conf || 0.85).toFixed(3);
+      document.getElementById('modal-coords').innerText = `${Number(r.lat).toFixed(5)}, ${Number(r.lon).toFixed(5)}`;
+
+      document.getElementById('full-modal').classList.remove('hidden');
+    }
+
+    function closeFullModal() {
+      document.getElementById('full-modal').classList.add('hidden');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      executeSearch();
+    });
+  </script>
+</body>
+</html>

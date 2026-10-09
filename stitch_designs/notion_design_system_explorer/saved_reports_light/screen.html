@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={"darkMode":"class","theme":{"extend":{"colors":{"secondary-fixed":"#d3e4fe","surface-dim":"#d8dadc","on-error-container":"#93000a","primary":"#630ed4","surface-tint":"#732ee4","text-primary":"#0f172a","on-secondary-fixed":"#0b1c30","error":"#ef4444","on-secondary":"#ffffff","surface-container-low":"#f8fafc","error-container":"#fee2e2","tertiary-fixed-dim":"#bec6e0","secondary":"#475569","primary-fixed-dim":"#d2bbff","text-muted":"#64748b","on-secondary-container":"#334155","on-surface":"#1e293b","inverse-on-surface":"#eff1f3","surface-container":"#ffffff","on-secondary-fixed-variant":"#38485d","outline":"#94a3b8","status-info":"#0284c7","primary-fixed":"#eaddff","on-tertiary-fixed":"#131b2e","tertiary-fixed":"#dae2fd","on-error":"#ffffff","on-primary-container":"#ffffff","secondary-fixed-dim":"#b7c8e1","status-warning":"#d97706","tertiary-container":"#5e667d","inverse-primary":"#d2bbff","tertiary":"#474e64","on-background":"#0f172a","on-primary":"#ffffff","on-tertiary-fixed-variant":"#3f465c","surface-container-lowest":"#ffffff","surface-container-high":"#f1f5f9","surface-container-highest":"#e2e8f0","surface":"#f8fafc","on-primary-fixed":"#25005a","on-tertiary":"#ffffff","on-primary-fixed-variant":"#5a00c6","surface-variant":"#f1f5f9","primary-container":"#7c3aed","secondary-container":"#e2e8f0","on-tertiary-container":"#dee5ff","on-surface-variant":"#475569","status-success":"#16a34a","surface-bright":"#ffffff","inverse-surface":"#1e293b","status-danger":"#dc2626","background":"#f8fafc","surface-border":"#e2e8f0","outline-variant":"#cbd5e1"},"borderRadius":{"DEFAULT":"0.125rem","lg":"0.375rem","xl":"0.5rem","full":"0.75rem"},"spacing":{"space-sm":"0.5rem","space-xs":"0.25rem","gutter-tablet":"1.25rem","gutter":"1rem","margin-tablet":"1.5rem","margin-desktop":"2.5rem","space-lg":"1.5rem","gutter-desktop":"1.5rem","space-md":"1rem","space-xl":"2.5rem","margin":"1rem"},"fontFamily":{"body-sm":["Inter"],"label-lg":["JetBrains Mono"],"headline-xl":["Inter"],"body-md":["Inter"],"headline-md":["Inter"],"label-sm":["JetBrains Mono"],"headline-lg":["Inter"],"headline-sm":["Inter"],"headline-xl-mobile":["Inter"],"body-lg":["Inter"],"headline-lg-mobile":["Inter"],"label-md":["JetBrains Mono"]},"fontSize":{"body-sm":["12px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"400"}],"label-lg":["13px",{"lineHeight":"18px","letterSpacing":"0.02em","fontWeight":"500"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.03em","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"22px","letterSpacing":"0em","fontWeight":"400"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.015em","fontWeight":"600"}],"label-sm":["10px",{"lineHeight":"14px","letterSpacing":"0.05em","fontWeight":"500"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"600"}],"headline-sm":["16px",{"lineHeight":"24px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"26px","letterSpacing":"-0.005em","fontWeight":"400"}],"headline-lg-mobile":["22px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"600"}],"label-md":["11px",{"lineHeight":"16px","letterSpacing":"0.04em","fontWeight":"500"}]}}}};</script></head><body class="bg-[#f8fafc] text-[#0f172a] font-body-md text-body-md antialiased selection:bg-purple-100 selection:text-purple-900 min-h-screen"><header class="fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-md border-b border-slate-200 z-50"><div class="w-full h-full px-gutter-desktop flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md min-w-0"><img alt="CivicRoad Logo" class="h-8 w-auto object-contain flex-shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4WbowRQIMBxb_tS2b646ytMzwKJrLxqUlMowN6HtNTVFADysLT9ImLFFOUe5DT0CVIgB2zaFK0GbgSX6Afm5uPT0qdVNYk4j0TzWs2ibSsIOY-WigR0ukP77lyl9_UtQldd8y4pGWdMW22Dj6bNKLisMv7Yp86x8Tx5KpzHmp8xUGQfbeg9lw6ka-uH2hx2zUC5ITLWtOc_aOgVdk68rhiReIEVHVi2sTcLr-_adI9OEDLt5uzwpk"/><div class="flex flex-col min-w-0"><div class="flex items-center gap-space-sm"><span class="font-headline-sm text-headline-sm text-slate-900 font-semibold tracking-tight truncate">🛣️ Pothole Detection &amp; Community Reporter</span><span class="font-label-sm text-label-sm bg-purple-50 text-purple-700 px-space-xs py-0.5 rounded border border-purple-200 font-semibold">v2.4-CIVIC</span></div><p class="font-body-sm text-body-sm text-slate-500 truncate">Detect potholes, tag their GPS location, build a city-wide heatmap for civic action.</p></div></div><div class="flex items-center gap-space-md flex-shrink-0"><div class="hidden xl:flex items-center gap-space-sm bg-slate-50 px-space-md py-space-xs rounded-lg border border-slate-200"><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="font-label-sm text-label-sm text-slate-700 font-medium">YOLOv8 Active</span></div><span class="text-slate-300 font-label-sm">|</span><div class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="font-label-sm text-label-sm text-slate-700 font-medium">SQLite Connected</span></div></div><div class="hidden md:flex flex-col items-end"><span class="font-label-sm text-label-sm text-slate-400 font-semibold tracking-wider">SESSION NODE</span><span class="font-label-md text-label-md text-slate-700 font-mono font-medium">SEC-PUNE-411001</span></div><div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm"><span class="material-symbols-outlined text-white text-[18px]">person</span></div></div></div></header><aside class="fixed left-0 top-20 bottom-0 w-[280px] bg-white border-r border-slate-200 z-40 overflow-y-auto flex flex-col justify-between p-space-md"><div class="flex flex-col gap-space-lg"><div class="flex flex-col gap-space-md"><div class="flex items-center justify-between border-b border-slate-100 pb-space-xs"><div class="flex items-center gap-space-xs"><span class="font-headline-sm text-headline-sm text-slate-900 font-semibold">⚙️ Settings</span></div><span class="font-label-sm text-label-sm text-purple-700 font-semibold uppercase font-mono tracking-wider">Config</span></div><div class="flex flex-col gap-space-xs"><div class="flex items-center justify-between font-label-md text-label-md"><span class="text-slate-700 font-medium">Confidence Threshold</span><span class="text-purple-700 font-mono font-semibold bg-purple-50 px-space-xs py-0.5 rounded border border-purple-200" id="confidence-display">0.50</span></div><input class="w-full accent-purple-600 bg-slate-200 h-1.5 rounded-lg appearance-none cursor-pointer" max="1.0" min="0.05" oninput="document.getElementById('confidence-display').innerText = parseFloat(this.value).toFixed(2)" step="0.05" type="range" value="0.50"/><div class="flex justify-between font-label-sm text-label-sm text-slate-400 font-mono"><span>0.05</span><span>0.50</span><span>1.00</span></div></div><div class="flex flex-col gap-space-xs"><span class="font-label-sm text-label-sm text-slate-400 font-semibold uppercase">Model Classes</span><div class="flex flex-wrap gap-space-xs"><span class="font-label-md text-label-md bg-purple-50 text-purple-700 px-space-sm py-1 rounded border border-purple-200 font-mono flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-purple-600"></span>[pothole]</span><span class="font-label-md text-label-md bg-slate-50 text-slate-500 px-space-sm py-1 rounded border border-slate-200 font-mono">[crack_surface]</span></div></div></div><div class="h-px bg-slate-100 w-full"></div><div class="flex flex-col gap-space-md"><div class="flex items-center justify-between border-b border-slate-100 pb-space-xs"><span class="font-headline-sm text-headline-sm text-slate-900 font-semibold">📍 Location Tag</span><span class="font-label-sm text-label-sm bg-slate-100 px-space-xs py-0.5 rounded text-slate-600 font-mono font-medium">GPS:FIX</span></div><div class="flex flex-col gap-space-xs"><div class="grid grid-cols-2 p-0.5 bg-slate-100 rounded-lg border border-slate-200"><button class="py-1 text-center font-label-sm text-label-sm rounded bg-white text-slate-800 font-medium shadow-sm" type="button">Manual Lat/Lon</button><button class="py-1 text-center font-label-sm text-label-sm rounded text-slate-500 hover:text-slate-800" type="button">Address (text)</button></div></div><div class="flex flex-col gap-space-sm"><div class="flex flex-col gap-1"><label class="font-label-sm text-label-sm text-slate-500 font-medium">Latitude Coordinates</label><div class="flex items-center bg-slate-50 border border-slate-200 rounded px-space-sm py-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400 mr-1.5">my_location</span><input class="bg-transparent text-slate-800 font-label-md text-label-md font-mono w-full focus:outline-none" readonly="" type="text" value="28.613900"/></div></div><div class="flex flex-col gap-1"><label class="font-label-sm text-label-sm text-slate-500 font-medium">Longitude Coordinates</label><div class="flex items-center bg-slate-50 border border-slate-200 rounded px-space-sm py-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400 mr-1.5">explore</span><input class="bg-transparent text-slate-800 font-label-md text-label-md font-mono w-full focus:outline-none" readonly="" type="text" value="77.209000"/></div></div><div class="flex flex-col gap-1"><label class="font-label-sm text-label-sm text-slate-500 font-medium">Address Override</label><div class="flex items-center bg-slate-50 border border-slate-200 rounded px-space-sm py-1.5"><span class="material-symbols-outlined text-[16px] text-slate-400 mr-1.5">location_on</span><input class="bg-transparent text-slate-800 font-body-sm text-body-sm w-full focus:outline-none text-ellipsis" type="text" value="MG Road, Pune, Maharashtra"/></div></div></div></div></div><div class="flex flex-col gap-space-sm pt-space-md border-t border-slate-100"><div class="flex items-center justify-between font-label-sm text-label-sm text-slate-500 font-mono"><span>DB: civic_pothole.db</span><span class="text-emerald-600 font-medium">SYNC OK</span></div><div class="text-center font-label-sm text-label-sm text-slate-400">© Municipal Road Survey &amp; Analytics</div></div></aside><div class="pl-[280px]"><div class="fixed top-20 left-[280px] right-0 h-12 bg-white/90 backdrop-blur-md border-b border-slate-200 z-30 flex items-center px-gutter-desktop"><nav class="flex items-center h-full gap-space-xs" data-active-classes="border-b-2 border-purple-600 text-purple-700 bg-purple-50/50 font-semibold"><a class="h-full flex items-center px-space-md text-slate-600 hover:text-slate-900 font-body-md text-body-md transition-all gap-space-xs border-b-2 border-transparent" data-path="detect-potholes" href="#"><span>🔍 Detect Potholes</span></a><a class="h-full flex items-center px-space-md text-slate-600 hover:text-slate-900 font-body-md text-body-md transition-all gap-space-xs border-b-2 border-transparent" data-path="heatmap" href="#"><span>🗺️ Heatmap</span><span class="font-label-sm text-label-sm px-1.5 py-0.2 bg-purple-100 text-purple-700 rounded-full font-mono font-medium">8</span></a><a aria-current="page" class="h-full flex items-center px-space-md transition-all gap-space-xs border-b-2 border-purple-600 text-purple-700 bg-purple-50/50 font-semibold" data-path="reports" href="#"><span>📋 Reports</span><span class="font-label-sm text-label-sm px-1.5 py-0.2 bg-purple-600 text-white rounded-full font-mono font-medium">8</span></a></nav></div><main class="w-full pt-32 p-gutter-desktop min-h-screen bg-[#f8fafc]"><div class="flex flex-col w-full">
+<div class="flex flex-col gap-space-lg w-full max-w-7xl mx-auto">
+<!-- Top Utility & Persistence Bar -->
+<div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-space-sm bg-white border border-slate-200 px-space-md py-space-sm rounded-xl shadow-sm">
+<div class="flex items-center gap-space-sm">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+<span class="font-label-md text-label-md text-slate-500 font-medium">PERSISTENCE LAYER:</span>
+<span class="font-label-md text-label-md text-slate-900 font-mono font-medium bg-slate-100 px-space-xs py-0.5 rounded border border-slate-200">potholes.db (142 KB persisted)</span>
+<span class="hidden sm:inline font-label-sm text-label-sm text-slate-400">WAL mode • SQLite 3.42.0</span>
+</div>
+<div class="flex items-center gap-space-xs">
+<button class="flex items-center gap-1.5 px-space-sm py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-label-md text-label-md font-medium transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-purple-600">database</span>
+<span>Export SQLite (.db)</span>
+</button>
+<button class="flex items-center gap-1.5 px-space-sm py-1.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-label-md text-label-md font-medium transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-slate-600">table_view</span>
+<span>Export CSV</span>
+</button>
+</div>
+</div>
+<!-- Filter & Action Header -->
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-space-md bg-white border border-slate-200 p-space-md rounded-xl shadow-sm">
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-space-md flex-1">
+<div class="flex items-center gap-space-xs whitespace-nowrap">
+<span class="font-headline-sm text-headline-sm text-slate-900 font-semibold">📋 Saved Community Reports</span>
+<span class="font-label-sm text-label-sm text-purple-700 font-mono font-medium bg-purple-50 border border-purple-200 px-2 py-0.5 rounded-full">8 total</span>
+</div>
+<!-- Search Input -->
+<div class="relative w-full sm:w-72 md:w-80">
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+<input class="w-full bg-white border border-slate-300 pl-9 pr-14 py-1.5 font-body-sm text-body-sm text-slate-900 placeholder:text-slate-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-600 transition-all shadow-sm" id="report-search" placeholder="Search by road or coordinates..." type="text"/>
+<kbd class="absolute right-2 top-1/2 -translate-y-1/2 font-label-sm text-label-sm text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">⌘K</kbd>
+</div>
+</div>
+<!-- Severity Filter Pills & Danger Button -->
+<div class="flex flex-wrap items-center justify-between lg:justify-end gap-space-sm">
+<div class="flex items-center p-0.5 bg-slate-100 border border-slate-200 rounded-lg gap-0.5">
+<button class="filter-pill px-space-sm py-1 rounded font-label-md text-label-md bg-slate-900 text-white font-medium shadow-sm transition-all" onclick="filterReports('all', this)" type="button">All (8)</button>
+<button class="filter-pill px-space-sm py-1 rounded font-label-md text-label-md text-slate-600 hover:text-slate-900 font-medium transition-all" onclick="filterReports('high', this)" type="button">High (5)</button>
+<button class="filter-pill px-space-sm py-1 rounded font-label-md text-label-md text-slate-600 hover:text-slate-900 font-medium transition-all" onclick="filterReports('medium', this)" type="button">Medium (2)</button>
+<button class="filter-pill px-space-sm py-1 rounded font-label-md text-label-md text-slate-600 hover:text-slate-900 font-medium transition-all" onclick="filterReports('low', this)" type="button">Low (1)</button>
+</div>
+<button class="flex items-center gap-1.5 px-space-md py-1.5 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 text-red-700 font-body-md text-body-md font-medium transition-all shadow-sm" onclick="confirmClearAll()" type="button">
+<span class="material-symbols-outlined text-[16px] text-red-600">delete_sweep</span>
+<span>Clear ALL reports</span>
+</button>
+</div>
+</div>
+<!-- Reports Ledger / Notion-style List -->
+<div class="flex flex-col gap-space-md" id="reports-container">
+<!-- Card #8: High Severity -->
+<div class="report-card relative bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md overflow-hidden transition-all duration-150" data-severity="high">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-[#ef4444]"></div>
+<div class="p-space-md pl-space-lg flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<div class="flex flex-col md:flex-row items-start md:items-center gap-space-md flex-1">
+<!-- Detection Mini Preview with simulated bounding boxes -->
+<div class="relative w-full md:w-36 h-24 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="High contrast dashcam photograph of deep asphalt pothole on urban highway MG Road Pune during clear daylight, harsh road crack surface, deep shadow inside cavity, high dynamic range." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDe72Z67mpQvXu_IGFpiMLC-ly1nM6Yl7E4To_hLk8D7h6klnfSXVUektbGvQ6Q_kd4oB7qmNx6IG_3IIzmWZqfodrK59xvpTpBv-Kfdod9pYZwP48Th1lQxyYdHgvJfP80qh5yDgsQBX-Tt6NDX6Hvqk7WyMkYIjQNQhrJPr_QQ1MuV-OmrgVeJZwYo98p8lw_HXvDTm74xN3u_hVvBNzCwyPjeovhtOmCboHkbo8SC_yqFGSKWTgz"/>
+<!-- Bounding box overlays -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+<div class="absolute top-4 left-6 w-14 h-9 bg-emerald-500/20 border border-emerald-400 shadow-sm pointer-events-none">
+<span class="absolute -top-3.5 left-0 font-label-sm text-label-sm font-mono bg-emerald-600 text-white px-1 leading-none">0.89</span>
+</div>
+<div class="absolute bottom-3 right-5 w-10 h-8 bg-emerald-500/20 border border-emerald-400 shadow-sm pointer-events-none">
+<span class="absolute -top-3.5 left-0 font-label-sm text-label-sm font-mono bg-emerald-600 text-white px-1 leading-none">0.78</span>
+</div>
+<span class="absolute bottom-1 right-1 font-label-sm text-label-sm font-mono text-white bg-slate-900/80 px-1 rounded">3 BBOX</span>
+</div>
+<!-- Core Metadata -->
+<div class="flex flex-col gap-1 min-w-0 flex-1">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-headline-sm text-headline-sm text-slate-900 font-semibold tracking-tight">#8 — MG Road, Pune, Maharashtra</span>
+<span class="font-label-sm text-label-sm text-slate-500 font-mono flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 2026-09-29 12:48:00
+                </span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-mono font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> High Severity
+                </span>
+</div>
+<!-- Telemetry Metrics Grid -->
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-1 text-slate-600 font-label-md text-label-md">
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-purple-600">warning</span>
+<span>Potholes: <strong class="text-slate-900 font-mono font-semibold">3</strong></span>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-purple-600">speed</span>
+<span>Avg Conf: <strong class="text-slate-900 font-mono font-semibold">0.821</strong></span>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-slate-400">location_on</span>
+<span class="font-mono text-slate-800">18.52040, 73.85670</span>
+</div>
+<span class="font-label-sm text-label-sm text-purple-700 font-mono font-semibold">NODE: PUNE-W4</span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-space-xs flex-shrink-0 self-end xl:self-center">
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-purple-600">visibility</span>
+<span>Inspect Detections</span>
+</button>
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-slate-600">data_object</span>
+<span>Download JSON</span>
+</button>
+<button class="px-space-sm py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-body-sm text-body-sm font-medium rounded-lg flex items-center gap-1 transition-colors shadow-sm" onclick="toggleProgress(this)" type="button">
+<span class="material-symbols-outlined text-[16px]">pending_actions</span>
+<span class="status-btn-text">Mark In Progress</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card #7: Medium Severity -->
+<div class="report-card relative bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md overflow-hidden transition-all duration-150" data-severity="medium">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-[#f59e0b]"></div>
+<div class="p-space-md pl-space-lg flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<div class="flex flex-col md:flex-row items-start md:items-center gap-space-md flex-1">
+<!-- Detection Mini Preview -->
+<div class="relative w-full md:w-36 h-24 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Cracked bitumen asphalt on Delhi NCR Sector 29 Gurugram secondary avenue, slight water accumulation in pothole pocket, overcast daylight with reflections." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhlprAmaEjsXID54m2ZdjnTl3CLZhKt1NtAUGrsYW4wDZb-O7RMRAx5c2s-w8lNPyRLhf7UIohgFq0cnpTqBi25-oPjiiOtQsuElwoVDnv6dVo8bHL24q71ABRieZlqHNIXLm9ON9rqEXbLCzdVAtzL-z7iIDxAKuncxB5FCmMS25Ndi-ZMdHTgrSJxtwJhQeYoZ4rrKfXe6Tpw_KxTFgXYM0E9H0GasiVXgwKUIXwSj8Q0OLaN4f5"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+<div class="absolute top-5 left-8 w-12 h-10 bg-emerald-500/20 border border-emerald-400 shadow-sm pointer-events-none">
+<span class="absolute -top-3.5 left-0 font-label-sm text-label-sm font-mono bg-emerald-600 text-white px-1 leading-none">0.71</span>
+</div>
+<span class="absolute bottom-1 right-1 font-label-sm text-label-sm font-mono text-white bg-slate-900/80 px-1 rounded">2 BBOX</span>
+</div>
+<!-- Core Metadata -->
+<div class="flex flex-col gap-1 min-w-0 flex-1">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-headline-sm text-headline-sm text-slate-900 font-semibold tracking-tight">#7 — Sector 29, Gurugram / Delhi NCR</span>
+<span class="font-label-sm text-label-sm text-slate-500 font-mono flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 2026-09-29 12:45:00
+                </span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 font-mono font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Medium Severity
+                </span>
+</div>
+<!-- Telemetry Metrics Grid -->
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-1 text-slate-600 font-label-md text-label-md">
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-purple-600">warning</span>
+<span>Potholes: <strong class="text-slate-900 font-mono font-semibold">2</strong></span>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-purple-600">speed</span>
+<span>Avg Conf: <strong class="text-slate-900 font-mono font-semibold">0.672</strong></span>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-slate-400">location_on</span>
+<span class="font-mono text-slate-800">28.46820, 77.06310</span>
+</div>
+<span class="font-label-sm text-label-sm text-purple-700 font-mono font-semibold">NODE: NCR-HR26</span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-space-xs flex-shrink-0 self-end xl:self-center">
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-purple-600">visibility</span>
+<span>Inspect Detections</span>
+</button>
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-slate-600">data_object</span>
+<span>Download JSON</span>
+</button>
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" onclick="toggleProgress(this)" type="button">
+<span class="material-symbols-outlined text-[16px]">pending_actions</span>
+<span class="status-btn-text">Mark In Progress</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card #6: Low Severity -->
+<div class="report-card relative bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md overflow-hidden transition-all duration-150" data-severity="low">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-[#22c55e]"></div>
+<div class="p-space-md pl-space-lg flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<div class="flex flex-col md:flex-row items-start md:items-center gap-space-md flex-1">
+<!-- Detection Mini Preview -->
+<div class="relative w-full md:w-36 h-24 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Subtle surface pitting and small circular asphalt cavity on clean Baner High Street Pune commercial roadway, warm afternoon lighting, low contrast fissure." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2yfdK2x3UDi_h7oMyquZSHRymD6m_1F3VJ6jIpbSMnNaWgXAfp2dchhuPo4ll6yQ4vQbgwyfWg6wep0rvSbz06a0Zj0_82sAQIYQEfm2mDXIanwPbHlgv9-coN2_MxnU2xihnI6AKgXui02w9v5SAhRY3w5lCaPrz6A1SC4IWNttzvArAHi2leE6Z5gr46Yc1MBMuz4x57xDkYm77XfFMUfFD_QaSs2MJNQsgRPUYBdRnqF2HmAqL"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+<div class="absolute top-6 left-10 w-9 h-7 bg-emerald-500/20 border border-emerald-400 shadow-sm pointer-events-none">
+<span class="absolute -top-3.5 left-0 font-label-sm text-label-sm font-mono bg-emerald-600 text-white px-1 leading-none">0.53</span>
+</div>
+<span class="absolute bottom-1 right-1 font-label-sm text-label-sm font-mono text-white bg-slate-900/80 px-1 rounded">1 BBOX</span>
+</div>
+<!-- Core Metadata -->
+<div class="flex flex-col gap-1 min-w-0 flex-1">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-headline-sm text-headline-sm text-slate-900 font-semibold tracking-tight">#6 — Baner High Street, Pune</span>
+<span class="font-label-sm text-label-sm text-slate-500 font-mono flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 2026-09-29 11:30:00
+                </span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 font-mono font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Low Severity
+                </span>
+</div>
+<!-- Telemetry Metrics Grid -->
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-1 text-slate-600 font-label-md text-label-md">
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-purple-600">warning</span>
+<span>Potholes: <strong class="text-slate-900 font-mono font-semibold">1</strong></span>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-purple-600">speed</span>
+<span>Avg Conf: <strong class="text-slate-900 font-mono font-semibold">0.531</strong></span>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-slate-400">location_on</span>
+<span class="font-mono text-slate-800">18.55900, 73.77940</span>
+</div>
+<span class="font-label-sm text-label-sm text-purple-700 font-mono font-semibold">NODE: PUNE-W7</span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-space-xs flex-shrink-0 self-end xl:self-center">
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-purple-600">visibility</span>
+<span>Inspect Detections</span>
+</button>
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-slate-600">data_object</span>
+<span>Download JSON</span>
+</button>
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" onclick="toggleProgress(this)" type="button">
+<span class="material-symbols-outlined text-[16px]">pending_actions</span>
+<span class="status-btn-text">Mark In Progress</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Card #5: High Severity -->
+<div class="report-card relative bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md overflow-hidden transition-all duration-150" data-severity="high">
+<div class="absolute left-0 top-0 bottom-0 w-[4px] bg-[#ef4444]"></div>
+<div class="p-space-md pl-space-lg flex flex-col xl:flex-row items-stretch xl:items-center justify-between gap-space-md">
+<div class="flex flex-col md:flex-row items-start md:items-center gap-space-md flex-1">
+<!-- Detection Mini Preview -->
+<div class="relative w-full md:w-36 h-24 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 group">
+<img class="w-full h-full object-cover" data-alt="Multiple jagged road craters clustered on elevated concrete Ring Road Flyover New Delhi, heavy traffic tire skid marks, hazardous road condition, harsh sunlight." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8iUGjGHa4il7E5KDYAtA8J6izzfwkpydI6ksNZad9cJXibTjULjaN2JxxdYDgAv2iiT0603OzFCQTXhux7v-xWWuMbMBHDgPA_tsTfMPJP8MqSgUzK4G1HtRoaMqqMD9wdZl_JUaQTIcHAcUtHB2D7XY2qqwtuqLvo8F9KJXKLr_P627c-rFfzykxoylkXDdnkt8eonK1QrBSjpfKMlb1DnzS_qLoHaZ8EDsoW_mqhV6mXlQmDDGk"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
+<div class="absolute top-2 left-4 w-10 h-7 bg-emerald-500/20 border border-emerald-400 shadow-sm pointer-events-none">
+<span class="absolute -top-3.5 left-0 font-label-sm text-label-sm font-mono bg-emerald-600 text-white px-1 leading-none">0.92</span>
+</div>
+<div class="absolute bottom-4 right-4 w-14 h-9 bg-emerald-500/20 border border-emerald-400 shadow-sm pointer-events-none">
+<span class="absolute -top-3.5 left-0 font-label-sm text-label-sm font-mono bg-emerald-600 text-white px-1 leading-none">0.85</span>
+</div>
+<span class="absolute bottom-1 right-1 font-label-sm text-label-sm font-mono text-white bg-slate-900/80 px-1 rounded">4 BBOX</span>
+</div>
+<!-- Core Metadata -->
+<div class="flex flex-col gap-1 min-w-0 flex-1">
+<div class="flex items-center gap-space-sm flex-wrap">
+<span class="font-headline-sm text-headline-sm text-slate-900 font-semibold tracking-tight">#5 — Ring Road Flyover, New Delhi</span>
+<span class="font-label-sm text-label-sm text-slate-500 font-mono flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">schedule</span> 2026-09-29 10:15:00
+                </span>
+<span class="font-label-sm text-label-sm px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-mono font-medium flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> High Severity
+                </span>
+</div>
+<!-- Telemetry Metrics Grid -->
+<div class="flex flex-wrap items-center gap-x-space-md gap-y-1 mt-1 text-slate-600 font-label-md text-label-md">
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-purple-600">warning</span>
+<span>Potholes: <strong class="text-slate-900 font-mono font-semibold">4</strong></span>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-purple-600">speed</span>
+<span>Avg Conf: <strong class="text-slate-900 font-mono font-semibold">0.884</strong></span>
+</div>
+<div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[16px] text-slate-400">location_on</span>
+<span class="font-mono text-slate-800">28.56720, 77.24310</span>
+</div>
+<span class="font-label-sm text-label-sm text-purple-700 font-mono font-semibold">NODE: DL-CENTRAL</span>
+</div>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex items-center gap-space-xs flex-shrink-0 self-end xl:self-center">
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-purple-600">visibility</span>
+<span>Inspect Detections</span>
+</button>
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" type="button">
+<span class="material-symbols-outlined text-[16px] text-slate-600">data_object</span>
+<span>Download JSON</span>
+</button>
+<button class="px-space-sm py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-body-sm text-body-sm rounded-lg flex items-center gap-1 transition-colors shadow-sm" onclick="toggleProgress(this)" type="button">
+<span class="material-symbols-outlined text-[16px]">pending_actions</span>
+<span class="status-btn-text">Mark In Progress</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Empty State Container (Hidden by default) -->
+<div class="hidden flex-col items-center justify-center py-space-xl bg-white border border-slate-200 rounded-xl text-center shadow-sm" id="empty-state">
+<span class="material-symbols-outlined text-[48px] text-slate-300 mb-space-sm">folder_open</span>
+<p class="font-headline-sm text-headline-sm text-slate-900 font-semibold">No community reports match criteria</p>
+<p class="font-body-sm text-body-sm text-slate-500 mt-1">Adjust your search query or reset the severity filters.</p>
+</div>
+<!-- Bottom Municipal Summary Telemetry Bar -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md pt-space-xs">
+<div class="bg-white border border-slate-200 p-space-md rounded-xl flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-slate-500 uppercase font-semibold">Cumulative Identified</span>
+<span class="font-headline-md text-headline-md text-slate-900 font-mono font-bold">19 Potholes</span>
+</div>
+<span class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+<span class="material-symbols-outlined text-[22px]">crisis_alert</span>
+</span>
+</div>
+<div class="bg-white border border-slate-200 p-space-md rounded-xl flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-slate-500 uppercase font-semibold">Mean Model Score</span>
+<span class="font-headline-md text-headline-md text-emerald-600 font-mono font-bold">0.768 Conf</span>
+</div>
+<span class="w-10 h-10 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">
+<span class="material-symbols-outlined text-[22px]">analytics</span>
+</span>
+</div>
+<div class="bg-white border border-slate-200 p-space-md rounded-xl flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-slate-500 uppercase font-semibold">Pending Municipal Fix</span>
+<span class="font-headline-md text-headline-md text-red-600 font-mono font-bold">5 High Priority</span>
+</div>
+<span class="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center text-red-600">
+<span class="material-symbols-outlined text-[22px]">construction</span>
+</span>
+</div>
+<div class="bg-white border border-slate-200 p-space-md rounded-xl flex items-center justify-between shadow-sm">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-slate-500 uppercase font-semibold">Civic Sync Index</span>
+<span class="font-headline-md text-headline-md text-purple-700 font-mono font-bold">100% Up-to-date</span>
+</div>
+<span class="w-10 h-10 rounded-xl bg-purple-50 border border-purple-100 flex items-center justify-center text-purple-600">
+<span class="material-symbols-outlined text-[22px]">cloud_done</span>
+</span>
+</div>
+</div>
+</div>
+<script>
+    function filterReports(severity, el) {
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.classList.remove('bg-slate-900', 'text-white', 'shadow-sm');
+        btn.classList.add('text-slate-600');
+      });
+      el.classList.add('bg-slate-900', 'text-white', 'shadow-sm');
+      el.classList.remove('text-slate-600');
+
+      const cards = document.querySelectorAll('.report-card');
+      let visibleCount = 0;
+      cards.forEach(card => {
+        if (severity === 'all' || card.getAttribute('data-severity') === severity) {
+          card.style.display = 'block';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      const empty = document.getElementById('empty-state');
+      if (visibleCount === 0) {
+        empty.classList.remove('hidden');
+        empty.classList.add('flex');
+      } else {
+        empty.classList.add('hidden');
+        empty.classList.remove('flex');
+      }
+    }
+
+    const searchInput = document.getElementById('report-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        const cards = document.querySelectorAll('.report-card');
+        let visibleCount = 0;
+        cards.forEach(card => {
+          const text = card.innerText.toLowerCase();
+          if (text.includes(query)) {
+            card.style.display = 'block';
+            visibleCount++;
+          } else {
+            card.style.display = 'none';
+          }
+        });
+        const empty = document.getElementById('empty-state');
+        if (visibleCount === 0) {
+          empty.classList.remove('hidden');
+          empty.classList.add('flex');
+        } else {
+          empty.classList.add('hidden');
+          empty.classList.remove('flex');
+        }
+      });
+    }
+
+    function toggleProgress(btn) {
+      const label = btn.querySelector('.status-btn-text');
+      if (label.innerText === 'Mark In Progress') {
+        label.innerText = 'In Progress...';
+        btn.classList.add('bg-amber-50', 'text-amber-800', 'border-amber-300');
+        btn.classList.remove('bg-white', 'bg-purple-600', 'text-white', 'text-slate-700', 'border-slate-300');
+      } else {
+        label.innerText = 'Resolved ✔';
+        btn.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-300');
+        btn.classList.remove('bg-amber-50', 'text-amber-800', 'border-amber-300');
+      }
+    }
+
+    function confirmClearAll() {
+      if (confirm('Are you sure you want to purge all 8 community road reports from the local SQLite database?')) {
+        const container = document.getElementById('reports-container');
+        container.innerHTML = '';
+        const empty = document.getElementById('empty-state');
+        empty.classList.remove('hidden');
+        empty.classList.add('flex');
+      }
+    }
+  </script>
+</div></main></div></body></html>

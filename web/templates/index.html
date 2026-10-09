@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}Overview{% endblock %}
+
+{% block sidebar %}
+<div class="flex flex-col gap-3">
+  <div class="flex items-center gap-2 border-b border-surface-border pb-2">
+    <span class="material-symbols-outlined text-[18px] text-primary">bolt</span>
+    <span class="font-semibold text-sm">Quick Actions</span>
+  </div>
+  <a href="/detect" class="px-3 py-2 rounded-lg bg-black hover:bg-neutral-800 text-white text-xs font-semibold flex items-center gap-2"><span class="material-symbols-outlined text-[18px]">add_a_photo</span>New photo inspection</a>
+  <a href="/bulk" class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-slate-900">batch_prediction</span>Bulk survey</a>
+  <a href="/heatmap" class="px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-slate-900">map</span>Open heatmap</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto flex flex-col gap-5">
+
+  <div class="bg-white border border-surface-border p-4 sm:p-6 rounded-2xl shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div class="max-w-2xl">
+      <div class="text-xs text-black uppercase font-mono tracking-widest font-semibold">Command center</div>
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight mt-1">Road Surface Integrity &amp; Civic Hazard Intelligence</h1>
+      <p class="text-xs text-slate-500 leading-relaxed mt-1">YOLO-based pothole detection with EXIF GPS tagging and a repair-status workflow. All figures below come straight from the database.</p>
+    </div>
+    <div class="flex items-center gap-2 text-xs font-mono text-slate-500 shrink-0">
+      <span id="updated">Loading…</span>
+      <button id="refresh" type="button" class="w-9 h-9 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600" aria-label="Refresh now">
+        <span class="material-symbols-outlined text-[18px]">refresh</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-surface-border shadow-sm">
+      <div class="flex items-center justify-between mb-2"><span class="text-[11px] sm:text-xs uppercase font-mono text-slate-500">Reports</span><span class="material-symbols-outlined text-slate-900 text-[20px]">assignment</span></div>
+      <div class="text-2xl sm:text-3xl font-bold font-mono" id="kpi-total">—</div>
+      <div class="text-[11px] text-slate-400 mt-1 font-mono">in database</div>
+    </div>
+    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-surface-border shadow-sm">
+      <div class="flex items-center justify-between mb-2"><span class="text-[11px] sm:text-xs uppercase font-mono text-slate-500">Potholes</span><span class="material-symbols-outlined text-slate-900 text-[20px]">crisis_alert</span></div>
+      <div class="text-2xl sm:text-3xl font-bold font-mono text-black" id="kpi-potholes">—</div>
+      <div class="text-[11px] text-slate-400 mt-1 font-mono">detected total</div>
+    </div>
+    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-red-200 shadow-sm">
+      <div class="flex items-center justify-between mb-2"><span class="text-[11px] sm:text-xs uppercase font-mono text-red-600 font-semibold">High severity</span><span class="material-symbols-outlined text-red-600 text-[20px]">warning</span></div>
+      <div class="text-2xl sm:text-3xl font-bold font-mono text-red-700" id="kpi-high">—</div>
+      <div class="text-[11px] text-red-600 mt-1 font-mono">reports rated High</div>
+    </div>
+    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-emerald-200 shadow-sm">
+      <div class="flex items-center justify-between mb-2"><span class="text-[11px] sm:text-xs uppercase font-mono text-emerald-600 font-semibold">Repaired</span><span class="material-symbols-outlined text-emerald-600 text-[20px]">task_alt</span></div>
+      <div class="text-2xl sm:text-3xl font-bold font-mono text-emerald-700" id="kpi-resolved">—</div>
+      <div class="text-[11px] text-emerald-700 mt-1 font-mono" id="kpi-resolved-sub">&nbsp;</div>
+    </div>
+  </div>
+
+  <!-- Distributions -->
+  <div class="grid lg:grid-cols-2 gap-4">
+    <div class="bg-white border border-surface-border rounded-2xl p-4 sm:p-5 shadow-sm">
+      <h3 class="font-bold text-sm mb-3">Severity mix</h3>
+      <div id="sev-bar" class="flex h-3 rounded-full overflow-hidden bg-slate-100"></div>
+      <div id="sev-legend" class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-slate-600"></div>
+    </div>
+    <div class="bg-white border border-surface-border rounded-2xl p-4 sm:p-5 shadow-sm">
+      <h3 class="font-bold text-sm mb-3">Workflow status</h3>
+      <div id="stat-bar" class="flex h-3 rounded-full overflow-hidden bg-slate-100"></div>
+      <div id="stat-legend" class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-slate-600"></div>
+    </div>
+  </div>
+
+  <!-- Modules -->
+  <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+    {% for href, icon, title, desc in [
+      ('/detect','search_check','Detect Photos','Upload a photo, read EXIF GPS, run the model'),
+      ('/video','videocam','Video Survey','Frame-by-frame dashcam analysis'),
+      ('/heatmap','map','Heatmap','Severity-coded map of every report'),
+      ('/reports','assignment','Reports','Filter, inspect and update repair status'),
+      ('/road-search','saved_search','Road Search','Photo evidence for any road or area'),
+      ('/bulk','batch_prediction','Bulk Survey','Process many photos in one run')] %}
+    <a href="{{ href }}" class="group bg-white border border-surface-border hover:border-black p-4 rounded-2xl shadow-sm hover:shadow-md transition-all">
+      <div class="w-9 h-9 rounded-xl bg-neutral-100 text-black flex items-center justify-center mb-2 group-hover:scale-105 transition-transform"><span class="material-symbols-outlined text-[20px]">{{ icon }}</span></div>
+      <div class="font-bold text-sm group-hover:text-black transition-colors">{{ title }}</div>
+      <p class="text-xs text-slate-500 leading-relaxed mt-0.5">{{ desc }}</p>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Recent -->
+  <div class="bg-white border border-surface-border rounded-2xl p-4 sm:p-5 shadow-sm">
+    <div class="flex items-center justify-between pb-3 border-b border-surface-border mb-2">
+      <div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary text-[18px]">history</span><h3 class="font-bold text-sm">Recent incidents</h3></div>
+      <a href="/reports" class="text-xs text-primary font-semibold hover:underline">View all →</a>
+    </div>
+    <div id="feed" class="flex flex-col divide-y divide-slate-100">
+      <div class="skeleton h-14 my-2"></div><div class="skeleton h-14 my-2"></div><div class="skeleton h-14 my-2"></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% raw %}
+<script>
+(() => {
+  const { $, esc, fmt, api, countUp, poll } = CR;
+  const SEV_COL = { High: '#ef4444', Medium: '#f59e0b', Low: '#10b981', None: '#94a3b8' };
+  const STAT_COL = { Reported: '#3b82f6', 'In Progress': '#f59e0b', Repaired: '#10b981' };
+  const SEV_BADGE = {
+    High: 'bg-red-50 text-red-700 border-red-200',
+    Medium: 'bg-amber-50 text-amber-800 border-amber-200',
+    Low: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    None: 'bg-slate-100 text-slate-600 border-slate-200',
+  };
+
+  function bar(barEl, legendEl, counts, colors) {
+    const entries = Object.keys(colors).map((k) => [k, counts[k] || 0]);
+    const total = entries.reduce((a, [, n]) => a + n, 0);
+    barEl.innerHTML = total
+      ? entries.filter(([, n]) => n).map(([k, n]) =>
+          `<div class="transition-all duration-500" style="width:${(n / total) * 100}%;background:${colors[k]}" title="${esc(k)}: ${n}"></div>`).join('')
+      : '';
+    legendEl.innerHTML = entries.map(([k, n]) =>
+      `<span class="inline-flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background:${colors[k]}"></span>${esc(k)} <strong class="font-mono text-slate-900">${fmt.num(n)}</strong></span>`).join('');
+  }
+
+  function feed(reports) {
+    const box = $('#feed');
+    if (!reports.length) {
+      box.innerHTML = '<div class="py-6 text-center text-slate-400 text-xs">No incidents registered yet. Run a detection and save a report.</div>';
+      return;
+    }
+    box.innerHTML = reports.map((r) => {
+      const sev = r.severity in SEV_BADGE ? r.severity : 'None';
+      const sample = r.has_own_image === false;
+      return `
+      <a href="/reports?open=${encodeURIComponent(r.id)}" class="py-3 px-1 flex items-center justify-between gap-3 hover:bg-slate-50 rounded-lg transition-colors card-enter">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="relative w-14 h-11 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+            <img src="${esc(r.image_url)}" loading="lazy" decoding="async" alt="" class="w-full h-full object-cover ${sample ? 'opacity-60' : ''}"/>
+            ${sample ? '<span class="absolute inset-x-0 bottom-0 text-[8px] text-center bg-slate-900/70 text-white font-mono">SAMPLE</span>' : ''}
+          </div>
+          <div class="min-w-0">
+            <div class="font-semibold text-xs truncate">#${esc(r.id)} · ${esc(r.road_name || 'Unnamed road')}</div>
+            <div class="text-[11px] text-slate-500 truncate">${esc(fmt.date(r.timestamp))} · ${fmt.num(r.num_potholes)} pothole(s)</div>
+          </div>
+        </div>
+        <span class="shrink-0 px-2 py-0.5 rounded-full border text-[11px] font-semibold ${SEV_BADGE[sev]}">${esc(sev)}</span>
+      </a>`;
+    }).join('');
+  }
+
+  async function load() {
+    try {
+      const [stats, rec] = await Promise.all([api('/api/stats'), api('/api/reports?limit=6')]);
+      const sc = stats.status_counts || {}, vc = stats.severity_counts || {};
+      countUp($('#kpi-total'), stats.total_reports);
+      countUp($('#kpi-potholes'), stats.total_potholes);
+      countUp($('#kpi-high'), vc.High || 0);
+      countUp($('#kpi-resolved'), sc.Repaired || 0);
+      $('#kpi-resolved-sub').textContent = `${sc['In Progress'] || 0} in progress · ${sc.Reported || 0} open`;
+      bar($('#sev-bar'), $('#sev-legend'), vc, SEV_COL);
+      bar($('#stat-bar'), $('#stat-legend'), sc, STAT_COL);
+      feed(rec.reports || []);
+      $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+    } catch (e) {
+      $('#updated').textContent = 'Offline — retrying…';
+    }
+  }
+
+  const p = poll(load, 20000);
+  $('#refresh').addEventListener('click', () => p.refresh());
+})();
+</script>
+{% endraw %}
+{% endblock %}

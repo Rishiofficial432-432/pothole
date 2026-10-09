@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>Video Survey | Notion Road Intelligence</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#000000",
+            "primary-container": "#000000",
+            "inverse-primary": "#27272a",
+            "surface": "#f8fafc",
+            "surface-border": "#e2e8f0",
+            "text-primary": "#0f172a",
+            "text-muted": "#64748b",
+            "status-success": "#16a34a",
+            "status-warning": "#d97706",
+            "status-danger": "#dc2626"
+          },
+          fontFamily: {
+            "sans": ["Inter", "sans-serif"],
+            "mono": ["JetBrains Mono", "monospace"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-surface text-text-primary text-sm antialiased selection:bg-neutral-900 selection:text-white min-h-screen">
+
+  <!-- Top Universal Header -->
+  <header class="fixed top-0 left-0 right-0 h-20 bg-white/95 backdrop-blur-md border-b border-surface-border z-50">
+    <div class="w-full h-full px-6 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-4 min-w-0">
+        <a href="/" class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-black flex items-center justify-center text-white text-xl shadow-sm">🛣️</div>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-base text-text-primary tracking-tight truncate">CivicRoad Intelligence</span>
+              <span class="text-xs bg-neutral-100 text-black px-2 py-0.5 rounded border border-neutral-200 font-mono font-medium">v2.4-CIVIC</span>
+            </div>
+            <p class="text-xs text-text-muted truncate">Detect potholes, tag GPS location &amp; build civic action heatmaps</p>
+          </div>
+        </a>
+      </div>
+
+      <div class="flex items-center gap-4 flex-shrink-0">
+        <div class="hidden xl:flex items-center gap-3 bg-slate-50 px-3 py-1.5 rounded-lg border border-surface-border">
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            <span class="text-xs text-slate-700 font-medium font-mono">YOLOv8 Video Pipeline Active</span>
+          </div>
+          <span class="text-slate-300 text-xs">|</span>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="text-xs text-slate-700 font-medium font-mono">Live Sampler Ready</span>
+          </div>
+        </div>
+        <div class="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm text-slate-700 font-medium">
+          <span class="material-symbols-outlined text-[20px]">person</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Left Sidebar Settings -->
+  <aside class="fixed left-0 top-20 bottom-0 w-[280px] bg-white border-r border-surface-border z-40 overflow-y-auto flex flex-col justify-between p-4 shadow-[1px_0_4px_rgba(0,0,0,0.02)]">
+    <div class="flex flex-col gap-5">
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-surface-border pb-2">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[18px] text-black">videocam</span>
+            <span class="font-semibold text-sm text-text-primary">Video Parameters</span>
+          </div>
+          <span class="text-[11px] text-black uppercase font-mono font-semibold">Config</span>
+        </div>
+
+        <!-- Confidence Threshold (Manual Input + Slider) -->
+        <div class="flex flex-col gap-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-700 font-medium">Confidence Floor</span>
+            <div class="flex items-center gap-1.5">
+              <span class="text-[10px] text-slate-400 font-mono">Manual:</span>
+              <input type="number" id="video-conf-input" min="0.01" max="1.00" step="0.01" value="0.20" class="w-16 px-1.5 py-0.5 text-xs font-mono font-bold text-center bg-white border border-neutral-300 rounded focus:border-black focus:outline-none focus:ring-1 focus:ring-black text-black" oninput="syncConfSlider(this.value)"/>
+            </div>
+          </div>
+          <input class="w-full accent-black bg-slate-100 h-1.5 rounded-lg appearance-none cursor-pointer border border-slate-200" id="video-conf-slider" max="0.95" min="0.01" step="0.01" type="range" value="0.20" oninput="syncConfSlider(this.value)"/>
+          <div class="flex items-center justify-between text-[10px] text-slate-500 font-mono">
+            <span>0.01</span>
+            <div class="flex items-center gap-1">
+              <button type="button" onclick="syncConfSlider(0.10)" class="px-1.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-slate-700 border border-neutral-200 font-medium">0.10</button>
+              <button type="button" onclick="syncConfSlider(0.20)" class="px-1.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-slate-700 border border-neutral-200 font-medium">0.20</button>
+              <button type="button" onclick="syncConfSlider(0.35)" class="px-1.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-slate-700 border border-neutral-200 font-medium">0.35</button>
+              <button type="button" onclick="syncConfSlider(0.50)" class="px-1.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 rounded text-slate-700 border border-neutral-200 font-medium">0.50</button>
+            </div>
+            <span>0.95</span>
+          </div>
+        </div>
+
+        <!-- Frame Sampling Rate Slider -->
+        <div class="flex flex-col gap-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-slate-700 font-medium">Frame Sampling Rate</span>
+            <span class="text-black font-mono font-semibold bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200" id="sample-rate-display">Every 1st frame (1x)</span>
+          </div>
+          <input class="w-full accent-black bg-slate-100 h-1.5 rounded-lg appearance-none cursor-pointer border border-slate-200" id="video-sample-slider" max="15" min="1" step="1" value="1" oninput="updateSampleRateDisplay(this.value)"/>
+          <div class="flex justify-between text-[10px] text-text-muted font-mono">
+            <span>1x (All)</span><span>2x</span><span>5x</span><span>10x</span><span>15x</span>
+          </div>
+          <p class="text-[10px] text-slate-400 mt-0.5 leading-normal">
+            Controls real-time frame skip frequency. 1x analyzes every frame. 2x-5x offers faster real-time throughput.
+          </p>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <span class="text-[11px] text-text-muted uppercase font-medium">Supported Video Codecs</span>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="text-[11px] bg-neutral-100 text-black px-2 py-0.5 rounded border border-neutral-200 font-mono font-medium">MP4 (H.264)</span>
+            <span class="text-[11px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-200 font-mono">WEBM</span>
+            <span class="text-[11px] bg-slate-50 text-slate-600 px-2 py-0.5 rounded border border-slate-200 font-mono">MOV / AVI</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-px bg-surface-border w-full"></div>
+
+      <!-- Location & Automatic Browser GPS -->
+      <div class="flex flex-col gap-3">
+        <div class="flex items-center justify-between border-b border-surface-border pb-2">
+          <div class="flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-[18px] text-black">location_on</span>
+            <span class="font-semibold text-sm text-text-primary">Survey Corridor</span>
+          </div>
+          <span class="text-[10px] bg-slate-100 text-slate-700 border border-slate-300 px-2 py-0.5 rounded font-mono font-medium flex items-center gap-1" id="video-gps-badge">
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+            <span>GPS: Auto-Ready</span>
+          </span>
+        </div>
+
+        <div class="flex flex-col gap-2.5">
+          <div class="flex flex-col gap-1">
+            <label class="text-xs text-slate-600 font-medium">Corridor / Road Name</label>
+            <input class="bg-slate-50 border border-slate-200 rounded px-2.5 py-1.5 text-xs text-slate-900 focus:outline-none focus:border-black" id="video-road-name" type="text" value="Detecting location..."/>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-slate-600 font-medium">Latitude</label>
+              <input class="bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-black" id="video-lat" type="number" step="any" value="18.5204"/>
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-xs text-slate-600 font-medium">Longitude</label>
+              <input class="bg-slate-50 border border-slate-200 rounded px-2 py-1.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-black" id="video-lon" type="number" step="any" value="73.8567"/>
+            </div>
+          </div>
+
+          <!-- Browser GPS Trigger Button -->
+          <button type="button" onclick="autoDetectBrowserGPS(true)" id="btn-detect-gps" class="w-full py-2 px-3 bg-black hover:bg-neutral-800 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all mt-0.5">
+            <span class="material-symbols-outlined text-[16px]">my_location</span>
+            <span id="btn-gps-text">Auto-Detect Browser GPS</span>
+          </button>
+
+          <!-- Live GPS Tracking Toggle for Moving Vehicles -->
+          <label class="flex items-center justify-between text-xs text-slate-700 cursor-pointer pt-0.5 select-none">
+            <span class="flex items-center gap-1.5 text-[11px] text-slate-600 font-medium">
+              <span class="material-symbols-outlined text-[15px] text-emerald-600">track_changes</span>
+              <span>Continuous Driving GPS</span>
+            </span>
+            <input type="checkbox" id="toggle-watch-gps" onchange="toggleContinuousGPSTracking(this.checked)" class="accent-black w-4 h-4 rounded cursor-pointer"/>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-2 pt-4 border-t border-surface-border">
+        <div class="flex items-center justify-between text-xs text-text-muted font-mono">
+          <span>AI ENGINE: YOLOv8s</span>
+          <span class="text-emerald-600 font-semibold" id="telemetry-fps-badge">REAL-TIME</span>
+        </div>
+        <div class="text-center text-[11px] text-slate-400">© Municipal Road Survey &amp; Analytics</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Secondary Top Navigation Bar -->
+  <div class="pl-[280px]">
+    <div class="fixed top-20 left-[280px] right-0 h-12 bg-white/90 backdrop-blur-md border-b border-surface-border z-30 flex items-center px-6 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <nav class="flex items-center h-full gap-1">
+        <a href="/" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">dashboard</span>
+          <span>Overview</span>
+        </a>
+        <a href="/detect" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">search_check</span>
+          <span>1. Detect Photos</span>
+        </a>
+        <a href="/video" class="h-full flex items-center px-4 transition-all gap-1.5 border-b-2 border-black text-black bg-neutral-100 font-semibold text-xs">
+          <span class="material-symbols-outlined text-[16px]">videocam</span>
+          <span>2. Video Survey</span>
+        </a>
+        <a href="/heatmap" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">map</span>
+          <span>3. Heatmap</span>
+        </a>
+        <a href="/reports" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">assignment</span>
+          <span>4. Reports</span>
+        </a>
+        <a href="/road-search" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">saved_search</span>
+          <span>5. Road Search</span>
+        </a>
+        <a href="/bulk" class="h-full flex items-center px-4 text-slate-600 hover:text-slate-900 text-xs font-medium transition-all gap-1.5 border-b-2 border-transparent hover:bg-slate-50">
+          <span class="material-symbols-outlined text-[16px]">batch_prediction</span>
+          <span>6. Bulk Survey</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <main class="w-full pt-36 p-6 min-h-screen bg-surface">
+      <div class="flex flex-col gap-6 w-full max-w-7xl mx-auto">
+
+        <!-- Status & Telemetry Header Bar -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 bg-white px-5 py-3 rounded-xl shadow-sm border border-surface-border">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-xs text-slate-900 uppercase tracking-wider font-semibold font-mono">Video Inference Active</span>
+            </div>
+            <span class="text-slate-300 text-xs">•</span>
+            <span class="text-xs text-slate-600 font-mono">PyTorch YOLOv8s Video Engine</span>
+            <span class="text-slate-300 text-xs">•</span>
+            <div class="flex items-center gap-1 bg-neutral-100 px-2 py-0.5 rounded border border-neutral-200">
+              <span class="material-symbols-outlined text-[14px] text-black">speed</span>
+              <span class="text-xs text-slate-900 font-mono font-medium" id="video-speed-pill">Ready to Stream</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-mono">LIVE SAMPLING + H.264 MP4 ENGINE</span>
+          </div>
+        </div>
+
+        <!-- Video Upload & Sample Action Card -->
+        <div class="bg-white rounded-2xl p-6 shadow-sm border border-surface-border">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5 min-w-0">
+              <div class="w-12 h-12 rounded-xl bg-neutral-100 border border-neutral-200 flex items-center justify-center flex-shrink-0 text-black">
+                <span class="material-symbols-outlined text-[28px]">movie</span>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-bold text-slate-900 truncate" id="video-name-display">Upload Custom Video or Run Dashcam</span>
+                  <span class="text-xs bg-neutral-100 text-black border border-neutral-200 px-2 py-0.5 rounded font-mono font-semibold" id="video-status-badge">READY</span>
+                </div>
+                <span class="text-xs text-slate-500 font-mono" id="video-meta-display">Drag &amp; drop video file below, or pick from your drive</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+              <input type="file" id="video-file-input" accept="video/mp4,video/avi,video/mov,video/webm,video/*" class="hidden" onchange="handleVideoFileSelect(this)"/>
+              
+              <button onclick="document.getElementById('video-file-input').click()" class="px-4 py-2 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-sm transition-all" type="button">
+                <span class="material-symbols-outlined text-[16px]">file_upload</span>
+                <span>Select Video</span>
+              </button>
+
+              <button onclick="toggleRealtimeSampling()" id="btn-realtime-scan" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-sm transition-all" type="button">
+                <span class="material-symbols-outlined text-[16px]">play_circle</span>
+                <span id="btn-realtime-label">⚡ Live Real-Time Scan</span>
+              </button>
+
+              <button onclick="startServerVideoDetection()" id="btn-run-video" class="px-3.5 py-2 bg-white hover:bg-neutral-100 text-slate-800 border border-slate-300 text-xs font-semibold rounded-lg flex items-center gap-1.5 shadow-sm transition-all" type="button">
+                <span class="material-symbols-outlined text-[16px]">movie_filter</span>
+                <span>Render MP4</span>
+              </button>
+
+              <button onclick="loadSampleDashcam()" id="btn-sample-video" class="px-3 py-2 bg-neutral-100 hover:bg-neutral-200 text-slate-800 border border-neutral-200 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all" type="button">
+                <span class="material-symbols-outlined text-[16px]">smart_display</span>
+                <span>Test Sample</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Video Dropzone -->
+          <div id="video-dropzone" onclick="document.getElementById('video-file-input').click()" class="mt-4 border-2 border-dashed border-slate-200 hover:border-black bg-slate-50/50 hover:bg-neutral-50 rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all">
+            <span class="material-symbols-outlined text-4xl text-slate-700 mb-1">video_library</span>
+            <p class="text-xs font-semibold text-slate-800">Drop your custom road video file here, or click to browse</p>
+            <p class="text-[11px] text-slate-400 mt-0.5">Supports MP4, AVI, MOV, WEBM • Live real-time frame sampling &amp; HUD overlay</p>
+          </div>
+        </div>
+
+        <!-- Real-Time Frame Sampling Controller (Prominent Main Card) -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm border border-surface-border flex flex-col gap-4">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-surface-border pb-3">
+            <div class="flex items-center gap-2.5">
+              <div class="w-9 h-9 rounded-xl bg-black text-white flex items-center justify-center font-bold shadow-sm">
+                <span class="material-symbols-outlined text-[20px]">tune</span>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span>Real-Time Frame Sampling Rate Controller</span>
+                  <span class="text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono font-semibold px-2 py-0.5 rounded">REAL-TIME ACTIVE</span>
+                </h3>
+                <p class="text-[11px] text-slate-500">Tune real-time frame skip frequency on the fly as the video plays. Neural bounding boxes render live on canvas.</p>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-mono px-3 py-1 rounded-lg bg-neutral-100 border border-neutral-300 text-black font-semibold flex items-center gap-1.5" id="active-video-source-pill">
+                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                <span id="active-source-text">NO VIDEO LOADED</span>
+              </span>
+              <span class="text-xs font-mono px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-slate-700" id="live-latency-pill">Latency: -- ms</span>
+            </div>
+          </div>
+
+          <!-- Main Interactive Slider Controls -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+            
+            <!-- Left: Frame Sampling Rate Slider (7 Cols) -->
+            <div class="lg:col-span-7 flex flex-col gap-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[18px] text-black">speed</span>
+                  <label for="main-sample-slider" class="text-xs font-bold text-slate-900 uppercase font-mono tracking-wider">FRAME SAMPLING RATE SLIDER</label>
+                </div>
+                <span class="text-xs font-mono font-bold bg-black text-white px-3 py-1 rounded-md shadow-xs" id="main-sample-rate-display">
+                  Every 1st frame (1x - Full Accuracy)
+                </span>
+              </div>
+
+              <!-- High-Visibility Range Slider -->
+              <input class="w-full accent-black bg-slate-200 h-2.5 rounded-lg appearance-none cursor-pointer border border-slate-300" id="main-sample-slider" max="15" min="1" step="1" value="1" oninput="syncSampleRate(this.value)"/>
+
+              <div class="flex justify-between text-[10px] text-slate-500 font-mono px-0.5">
+                <span>1x (Every Frame)</span>
+                <span>2x (2x Speed)</span>
+                <span>5x (Balanced)</span>
+                <span>10x (Fast)</span>
+                <span>15x (Ultra Speed)</span>
+              </div>
+
+              <!-- Quick Presets -->
+              <div class="flex items-center justify-between text-xs pt-0.5">
+                <span class="text-[11px] text-slate-500 font-mono">Quick Presets:</span>
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <button type="button" onclick="syncSampleRate(1)" class="px-2.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-300 rounded text-[11px] font-mono font-medium transition-colors">1x (All)</button>
+                  <button type="button" onclick="syncSampleRate(2)" class="px-2.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-300 rounded text-[11px] font-mono font-medium transition-colors">2x</button>
+                  <button type="button" onclick="syncSampleRate(5)" class="px-2.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-300 rounded text-[11px] font-mono font-medium transition-colors">5x (Optimal)</button>
+                  <button type="button" onclick="syncSampleRate(10)" class="px-2.5 py-0.5 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-300 rounded text-[11px] font-mono font-medium transition-colors">10x (Fast)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Confidence & Live Play CTA (5 Cols) -->
+            <div class="lg:col-span-5 flex flex-col gap-2.5 pl-0 lg:pl-5 border-t lg:border-t-0 lg:border-l border-slate-200">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5">
+                  <span class="material-symbols-outlined text-[16px] text-black">tune</span>
+                  <label for="main-conf-input" class="text-xs font-bold text-slate-900 uppercase font-mono tracking-wider">CONFIDENCE THRESHOLD</label>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[11px] text-slate-400 font-mono">Manual:</span>
+                  <input type="number" id="main-conf-input" min="0.01" max="1.00" step="0.01" value="0.20" class="w-20 px-2 py-0.5 text-xs font-mono font-bold text-center bg-white border border-neutral-300 rounded-md focus:border-black focus:outline-none focus:ring-1 focus:ring-black text-black shadow-xs" oninput="syncConfSlider(this.value)"/>
+                </div>
+              </div>
+              <input class="w-full accent-black bg-slate-200 h-2 rounded-lg cursor-pointer" id="main-conf-slider" max="0.95" min="0.01" step="0.01" value="0.20" oninput="syncConfSlider(this.value)"/>
+
+              <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono">
+                <span>Presets:</span>
+                <div class="flex items-center gap-1">
+                  <button type="button" onclick="syncConfSlider(0.10)" class="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-300 rounded text-[11px] font-mono transition-colors">0.10 (Sensitive)</button>
+                  <button type="button" onclick="syncConfSlider(0.20)" class="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-300 rounded text-[11px] font-mono transition-colors">0.20 (Optimal)</button>
+                  <button type="button" onclick="syncConfSlider(0.35)" class="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-300 rounded text-[11px] font-mono transition-colors">0.35 (Strict)</button>
+                  <button type="button" onclick="syncConfSlider(0.50)" class="px-2 py-0.5 bg-neutral-100 hover:bg-neutral-200 text-black border border-neutral-300 rounded text-[11px] font-mono transition-colors">0.50 (High)</button>
+                </div>
+              </div>
+              
+              <div class="flex items-center gap-2 mt-1">
+                <button onclick="toggleRealtimeSampling()" id="btn-main-realtime" type="button" class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold font-mono uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm transition-all">
+                  <span class="material-symbols-outlined text-[18px]">play_circle</span>
+                  <span id="btn-main-realtime-text">Start Real-Time Frame Scan</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Processing Loader for Server-side rendering -->
+        <div id="video-loading" class="hidden bg-white border border-surface-border rounded-2xl p-8 text-center shadow-sm">
+          <div class="inline-block animate-spin w-10 h-10 border-4 border-black border-t-transparent rounded-full mb-3"></div>
+          <h3 class="text-sm font-bold text-slate-900">Processing Video Frames with YOLOv8...</h3>
+          <p class="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+            Extracting frames at selected sampling rate, detecting cavities, adding telemetry HUD, and re-encoding to browser-ready H.264 MP4.
+          </p>
+        </div>
+
+        <!-- Video Player Grid -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6" id="video-player-container">
+          
+          <!-- Left: Input Video Player -->
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-surface-border flex flex-col">
+            <div class="px-4 py-3 bg-slate-50 border-b border-surface-border flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px] text-slate-500">videocam</span>
+                <span class="font-bold text-xs text-slate-900" id="orig-player-title">Source Dashcam Video Feed</span>
+              </div>
+              <span class="text-[10px] font-mono bg-white px-2 py-0.5 rounded border border-slate-200 text-slate-600" id="orig-codec-badge">SOURCE VIDEO</span>
+            </div>
+            <div class="relative aspect-video w-full bg-black flex items-center justify-center">
+              <video id="orig-video-player" controls playsinline class="w-full h-full object-contain">
+                Your browser does not support HTML5 video.
+              </video>
+            </div>
+          </div>
+
+          <!-- Right: AI-Annotated Video Feed (Canvas for Real-Time Live Scan, Video tag for Rendered Output) -->
+          <div class="bg-white rounded-2xl overflow-hidden shadow-sm border border-surface-border flex flex-col">
+            <div class="px-4 py-3 bg-slate-50 border-b border-surface-border flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-[18px] text-black">analytics</span>
+                <span class="font-bold text-xs text-slate-900" id="ann-header-label">Real-Time Machine Vision Feed</span>
+              </div>
+              <span class="text-xs bg-black text-white px-2.5 py-0.5 rounded font-mono font-semibold" id="video-hazard-badge">READY TO SCAN</span>
+            </div>
+            <div class="relative aspect-video w-full bg-black flex items-center justify-center overflow-hidden" id="ann-player-wrapper">
+              <!-- Live Canvas for Real-Time Frame Sampling -->
+              <canvas id="live-ann-canvas" class="w-full h-full object-contain"></canvas>
+
+              <!-- Video tag for Server-Rendered Output -->
+              <video id="ann-video-player" controls autoplay loop playsinline class="w-full h-full object-contain hidden">
+                Your browser does not support HTML5 video.
+              </video>
+
+              <!-- Live HUD overlay badge on canvas -->
+              <div id="live-hud-pill" class="hidden absolute top-3 left-3 bg-black/85 backdrop-blur-md px-3 py-1 rounded-lg text-white font-mono text-xs border border-white/20 shadow-md flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span id="live-hud-text">LIVE SAMPLING: 0 FPS</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Video Telemetry Metrics Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white p-5 rounded-2xl border border-surface-border shadow-sm flex flex-col justify-between">
+            <span class="text-xs uppercase font-mono text-slate-400">Total Frames Scanned</span>
+            <div class="text-3xl font-bold font-mono text-slate-900 mt-1" id="kpi-vid-frames">0</div>
+            <span class="text-xs text-slate-500 font-mono" id="kpi-vid-fps">Sampling Rate: 1x</span>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-surface-border shadow-sm flex flex-col justify-between">
+            <span class="text-xs uppercase font-mono text-slate-400">Hazard Cavity Frames</span>
+            <div class="text-3xl font-bold font-mono text-black mt-1" id="kpi-vid-incidents">0</div>
+            <span class="text-xs text-emerald-600 font-mono font-medium">Cavities tracked across frames</span>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-surface-border shadow-sm flex flex-col justify-between">
+            <span class="text-xs uppercase font-mono text-slate-400">Peak Confidence</span>
+            <div class="text-3xl font-bold font-mono text-slate-900 mt-1" id="kpi-vid-conf">0.000</div>
+            <span class="text-xs text-emerald-600 font-mono font-medium">YOLO certainty index</span>
+          </div>
+
+          <div class="bg-white p-5 rounded-2xl border border-surface-border shadow-sm flex flex-col justify-between" id="kpi-vid-sev-card">
+            <span class="text-xs uppercase font-mono text-slate-500 font-semibold">Video Road Severity</span>
+            <div class="text-2xl font-bold font-mono text-slate-800 mt-1" id="kpi-vid-sev">NONE</div>
+            <span class="text-xs text-slate-500 font-mono font-medium" id="kpi-vid-sev-sub">Awaiting scan</span>
+          </div>
+        </div>
+
+        <!-- Frame Occurrences Timeline Ledger -->
+        <div class="bg-white rounded-2xl border border-surface-border shadow-sm overflow-hidden">
+          <div class="px-5 py-3.5 bg-slate-50 border-b border-surface-border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="material-symbols-outlined text-[18px] text-black">timeline</span>
+              <h3 class="font-bold text-xs text-slate-900">Pothole Incident Video Timeline Log</h3>
+            </div>
+            <span class="text-xs text-slate-500 font-mono" id="video-log-count">0 Incident Frames</span>
+          </div>
+
+          <div class="overflow-x-auto w-full">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="bg-slate-50/70 border-b border-surface-border text-slate-600 text-[11px] uppercase font-mono tracking-wider">
+                  <th class="px-5 py-2.5 font-semibold">Frame #</th>
+                  <th class="px-5 py-2.5 font-semibold">Video Time</th>
+                  <th class="px-5 py-2.5 font-semibold">Cavities Detected</th>
+                  <th class="px-5 py-2.5 font-semibold">Peak Confidence</th>
+                  <th class="px-5 py-2.5 font-semibold">Severity</th>
+                  <th class="px-5 py-2.5 font-semibold text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="video-timeline-tbody" class="font-mono divide-y divide-slate-100">
+                <tr>
+                  <td colspan="6" class="px-5 py-6 text-center text-slate-400 font-sans">
+                    No frames analyzed yet. Upload your video and start the Real-Time Scan.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Action Section: Save & Export Video -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-surface-border mb-6">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="flex flex-col gap-1 max-w-xl">
+              <div class="flex items-center gap-1.5 text-black">
+                <span class="material-symbols-outlined text-[18px]">verified</span>
+                <span class="text-xs font-mono uppercase tracking-wider font-semibold">Video Survey Persistence</span>
+              </div>
+              <h3 class="text-sm font-bold text-slate-900" id="video-save-heading">MG Road Sector 4 Dashcam Corridor</h3>
+              <p class="text-xs text-slate-500">
+                Append this entire video survey incident to `potholes.db` with localized GPS waypoints, cavity frequency, and peak hazard metrics.
+              </p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <a id="btn-download-video" href="#" download="annotated_dashcam_potholes.mp4" class="hidden h-10 px-4 bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-medium rounded-lg flex items-center gap-1.5 transition-all shadow-xs">
+                <span class="material-symbols-outlined text-[18px] text-black">download</span>
+                <span>Download Annotated MP4</span>
+              </a>
+              <button onclick="saveVideoToDatabase()" id="btn-save-video-db" class="h-10 px-5 bg-black hover:bg-neutral-800 text-white text-xs font-semibold rounded-lg flex items-center gap-2 shadow-sm transition-all" type="button">
+                <span class="material-symbols-outlined text-[18px]">save</span>
+                <span>Save Survey to DB</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // State
+    let currentVideoData = null;
+    let selectedVideoFile = null;
+    let isSampleMode = false;
+    let isRealtimeScanning = false;
+    let realtimeTimer = null;
+    let liveFrameIndex = 0;
+    let liveIncidentCount = 0;
+    let peakLiveConf = 0.0;
+    let trackedOccurrences = [];
+    let isProcessingFrame = false;
+    let activeDetections = [];
+    let lastDetectionTimestamp = 0;
+
+    // Dual-slider Frame Sampling Rate synchronizer
+    function syncSampleRate(val) {
+      const v = Math.max(1, Math.min(15, parseInt(val) || 1));
+      
+      // Sync sliders
+      const mainSlider = document.getElementById('main-sample-slider');
+      const sideSlider = document.getElementById('video-sample-slider');
+      if (mainSlider) mainSlider.value = v;
+      if (sideSlider) sideSlider.value = v;
+
+      // Update text readouts
+      const desc = v === 1 ? 'Every 1st frame (1x - Full Accuracy)' : `Every ${v}th frame (${v}x Speed)`;
+      const mainLabel = document.getElementById('main-sample-rate-display');
+      const sideLabel = document.getElementById('sample-rate-display');
+      if (mainLabel) mainLabel.innerText = desc;
+      if (sideLabel) sideLabel.innerText = desc;
+
+      const kpiFps = document.getElementById('kpi-vid-fps');
+      if (kpiFps) kpiFps.innerText = `Sampling Rate: ${v}x`;
+    }
+
+    // Confidence manual input and slider synchronizer
+    function syncConfSlider(val) {
+      let v = parseFloat(val);
+      if (isNaN(v)) return;
+      v = Math.max(0.01, Math.min(1.00, v));
+      const vStr = v.toFixed(2);
+
+      const mainSlider = document.getElementById('main-conf-slider');
+      const sideSlider = document.getElementById('video-conf-slider');
+      const mainInput = document.getElementById('main-conf-input');
+      const sideInput = document.getElementById('video-conf-input');
+
+      if (mainSlider) mainSlider.value = v;
+      if (sideSlider) sideSlider.value = v;
+
+      // Only update input box if user is not actively typing in it
+      if (mainInput && document.activeElement !== mainInput) mainInput.value = vStr;
+      if (sideInput && document.activeElement !== sideInput) sideInput.value = vStr;
+    }
+
+    function updateSampleRateDisplay(val) {
+      syncSampleRate(val);
+    }
+
+    // Global drag & drop handler to prevent accidental browser file-drop navigation
+    window.addEventListener('dragover', (e) => e.preventDefault());
+    window.addEventListener('drop', (e) => e.preventDefault());
+
+    // Dropzone and Container drag & drop
+    const dropzone = document.getElementById('video-dropzone');
+    const playerContainer = document.getElementById('video-player-container');
+
+    [dropzone, playerContainer].forEach(el => {
+      if (!el) return;
+      ['dragenter', 'dragover'].forEach(evt => {
+        el.addEventListener(evt, (e) => {
+          e.preventDefault();
+          if (dropzone) dropzone.classList.add('border-black', 'bg-neutral-100');
+        });
+      });
+      ['dragleave'].forEach(evt => {
+        el.addEventListener(evt, (e) => {
+          e.preventDefault();
+          if (dropzone) dropzone.classList.remove('border-black', 'bg-neutral-100');
+        });
+      });
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        if (dropzone) dropzone.classList.remove('border-black', 'bg-neutral-100');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          handleVideoFile(e.dataTransfer.files[0]);
+        }
+      });
+    });
+
+    function handleVideoFileSelect(input) {
+      if (input.files && input.files[0]) {
+        handleVideoFile(input.files[0]);
+      }
+    }
+
+    function handleVideoFile(file) {
+      if (!file) return;
+
+      selectedVideoFile = file;
+      isSampleMode = false;
+      stopRealtimeInspection();
+
+      // UI updates
+      document.getElementById('video-name-display').innerText = file.name;
+      document.getElementById('video-meta-display').innerText = `${(file.size / (1024 * 1024)).toFixed(2)} MB • Custom Video Active`;
+      
+      const statusBadge = document.getElementById('video-status-badge');
+      statusBadge.innerText = 'CUSTOM VIDEO LOADED';
+      statusBadge.className = 'text-xs bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-0.5 rounded font-mono font-semibold';
+
+      document.getElementById('orig-player-title').innerText = `Custom Feed: ${file.name}`;
+      document.getElementById('orig-codec-badge').innerText = 'CUSTOM VIDEO';
+      
+      const activeSourcePill = document.getElementById('active-video-source-pill');
+      activeSourcePill.className = 'text-xs font-mono px-3 py-1 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-800 font-semibold flex items-center gap-1.5';
+      document.getElementById('active-source-text').innerText = `CUSTOM: ${file.name}`;
+
+      // CRITICAL: Stop and destroy any previous sample or rendered video
+      const annPlayer = document.getElementById('ann-video-player');
+      annPlayer.pause();
+      annPlayer.src = "";
+      annPlayer.removeAttribute('src');
+      annPlayer.classList.add('hidden');
+
+      // Load custom video into source player
+      const origPlayer = document.getElementById('orig-video-player');
+      origPlayer.pause();
+      origPlayer.src = URL.createObjectURL(file);
+      origPlayer.load();
+
+      // Switch view to live canvas
+      const canvas = document.getElementById('live-ann-canvas');
+      canvas.classList.remove('hidden');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 640;
+      canvas.height = 360;
+      ctx.fillStyle = "#0a0a0a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "bold 13px Inter, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("✅ Custom Video Ready: Press Play or click '⚡ Live Real-Time Scan'", canvas.width / 2, canvas.height / 2);
+
+      resetTelemetry();
+    }
+
+    function loadSampleDashcam() {
+      stopRealtimeInspection();
+      selectedVideoFile = null;
+      isSampleMode = true;
+
+      document.getElementById('video-name-display').innerText = 'sample_dashcam.mp4 (Sample)';
+      document.getElementById('video-meta-display').innerText = 'Verified Urban Dashcam Survey Sample';
+      
+      const statusBadge = document.getElementById('video-status-badge');
+      statusBadge.innerText = 'SAMPLE MODE';
+      statusBadge.className = 'text-xs bg-neutral-100 text-black border border-neutral-300 px-2 py-0.5 rounded font-mono font-semibold';
+
+      document.getElementById('orig-player-title').innerText = 'Source Dashcam: sample_dashcam.mp4';
+      document.getElementById('orig-codec-badge').innerText = 'SAMPLE DASHCAM';
+
+      const activeSourcePill = document.getElementById('active-video-source-pill');
+      activeSourcePill.className = 'text-xs font-mono px-3 py-1 rounded-lg bg-neutral-100 border border-neutral-300 text-black font-semibold flex items-center gap-1.5';
+      document.getElementById('active-source-text').innerText = 'SAMPLE: sample_dashcam.mp4';
+
+      const origPlayer = document.getElementById('orig-video-player');
+      origPlayer.pause();
+      origPlayer.src = '/sample_images/sample_dashcam.mp4';
+      origPlayer.load();
+
+      const annPlayer = document.getElementById('ann-video-player');
+      annPlayer.pause();
+      annPlayer.src = "";
+      annPlayer.classList.add('hidden');
+
+      const canvas = document.getElementById('live-ann-canvas');
+      canvas.classList.remove('hidden');
+      resetTelemetry();
+    }
+
+    function resetTelemetry() {
+      liveFrameIndex = 0;
+      liveIncidentCount = 0;
+      peakLiveConf = 0.0;
+      trackedOccurrences = [];
+      activeDetections = [];
+      lastDetectionTimestamp = 0;
+
+      document.getElementById('kpi-vid-frames').innerText = '0';
+      document.getElementById('kpi-vid-incidents').innerText = '0';
+      document.getElementById('kpi-vid-conf').innerText = '0.000';
+      document.getElementById('kpi-vid-sev').innerText = 'NONE';
+      document.getElementById('kpi-vid-sev').className = 'text-2xl font-bold font-mono text-slate-800 mt-1';
+      document.getElementById('video-hazard-badge').innerText = 'READY TO SCAN';
+      document.getElementById('video-log-count').innerText = '0 Incident Frames';
+      document.getElementById('btn-download-video').classList.add('hidden');
+      document.getElementById('video-timeline-tbody').innerHTML = `
+        <tr><td colspan="6" class="px-5 py-6 text-center text-slate-400 font-sans">
+          Ready for inspection. Click '⚡ Live Real-Time Scan' or hit Play on the video.
+        </td></tr>
+      `;
+    }
+
+    // Toggle Real-Time Live Frame Sampling
+    function toggleRealtimeSampling() {
+      if (isRealtimeScanning) {
+        stopRealtimeInspection();
+      } else {
+        startRealtimeInspection();
+      }
+    }
+
+    function startRealtimeInspection() {
+      const origVideo = document.getElementById('orig-video-player');
+      
+      // Ensure source is loaded
+      if (!origVideo.src || origVideo.src === window.location.href) {
+        if (selectedVideoFile) {
+          origVideo.src = URL.createObjectURL(selectedVideoFile);
+          origVideo.load();
+        } else {
+          loadSampleDashcam();
+        }
+      }
+
+      isRealtimeScanning = true;
+
+      // Update button states
+      const btnSide = document.getElementById('btn-realtime-scan');
+      if (btnSide) {
+        btnSide.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        btnSide.classList.add('bg-red-600', 'hover:bg-red-700');
+      }
+      document.getElementById('btn-realtime-label').innerText = '⏹️ Stop Live Scan';
+
+      const btnMain = document.getElementById('btn-main-realtime');
+      if (btnMain) {
+        btnMain.classList.remove('bg-emerald-600', 'hover:bg-emerald-700');
+        btnMain.classList.add('bg-red-600', 'hover:bg-red-700');
+        document.getElementById('btn-main-realtime-text').innerText = 'Stop Live Frame Scan';
+      }
+
+      // Ensure canvas is visible
+      const canvas = document.getElementById('live-ann-canvas');
+      canvas.classList.remove('hidden');
+      document.getElementById('ann-video-player').classList.add('hidden');
+      document.getElementById('live-hud-pill').classList.remove('hidden');
+
+      origVideo.play().catch(e => console.log("Playback info:", e));
+
+      // Offscreen canvas for grabbing frames
+      const offCanvas = document.createElement('canvas');
+      const offCtx = offCanvas.getContext('2d');
+      const targetCtx = canvas.getContext('2d');
+
+      let frameCount = 0;
+      let fpsCounter = 0;
+      let lastFpsTime = performance.now();
+
+      const loop = async () => {
+        if (!isRealtimeScanning) return;
+
+        if (!origVideo.paused && !origVideo.ended && origVideo.readyState >= 2) {
+          // Dynamic slider sampling rate
+          const sampleStep = parseInt(document.getElementById('main-sample-slider').value) || 1;
+          frameCount++;
+
+          // Size canvas
+          if (canvas.width !== origVideo.videoWidth && origVideo.videoWidth > 0) {
+            canvas.width = origVideo.videoWidth;
+            canvas.height = origVideo.videoHeight;
+            offCanvas.width = origVideo.videoWidth;
+            offCanvas.height = origVideo.videoHeight;
+          }
+
+          // Real-time FPS calculation
+          fpsCounter++;
+          const now = performance.now();
+          if (now - lastFpsTime >= 1000) {
+            const currentFps = ((fpsCounter * 1000) / (now - lastFpsTime)).toFixed(1);
+            document.getElementById('live-hud-text').innerText = `LIVE: ${currentFps} FPS | STEP: ${sampleStep}x`;
+            fpsCounter = 0;
+            lastFpsTime = now;
+          }
+
+          // Draw the live video frame immediately
+          targetCtx.drawImage(origVideo, 0, 0, canvas.width, canvas.height);
+
+          // Render any active detections with persistent box tracking
+          if (activeDetections.length > 0 && (now - lastDetectionTimestamp < 1200)) {
+            activeDetections.forEach(d => {
+              const [x1, y1, x2, y2] = d.bbox;
+              targetCtx.strokeStyle = "#ef4444";
+              targetCtx.lineWidth = Math.max(3, Math.round(canvas.width / 260));
+              targetCtx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+
+              // Label badge
+              const label = `Pothole ${(d.confidence * 100).toFixed(0)}%`;
+              targetCtx.font = "bold 13px JetBrains Mono, monospace";
+              const tw = targetCtx.measureText(label).width;
+              targetCtx.fillStyle = "#ef4444";
+              targetCtx.fillRect(x1, Math.max(0, y1 - 22), tw + 10, 22);
+              targetCtx.fillStyle = "#ffffff";
+              targetCtx.fillText(label, x1 + 5, Math.max(16, y1 - 6));
+            });
+          }
+
+          // Live HUD bar on canvas
+          targetCtx.fillStyle = "rgba(0, 0, 0, 0.75)";
+          targetCtx.fillRect(8, canvas.height - 30, canvas.width - 16, 22);
+          targetCtx.fillStyle = "#22c55e";
+          targetCtx.font = "11px JetBrains Mono, monospace";
+          targetCtx.fillText(`FRAME #${liveFrameIndex} • CAVITIES: ${activeDetections.length} • RATE: ${sampleStep}x • YOLOv8 REAL-TIME`, 16, canvas.height - 15);
+
+          // Perform inference if frame matches sampling step and worker isn't saturated
+          if (frameCount % sampleStep === 0 && !isProcessingFrame) {
+            isProcessingFrame = true;
+            liveFrameIndex++;
+            document.getElementById('kpi-vid-frames').innerText = liveFrameIndex;
+
+            offCtx.drawImage(origVideo, 0, 0, offCanvas.width, offCanvas.height);
+            const dataUrl = offCanvas.toDataURL('image/jpeg', 0.80);
+            const conf = parseFloat(document.getElementById('main-conf-input')?.value || document.getElementById('video-conf-input')?.value || document.getElementById('main-conf-slider')?.value || 0.20);
+            const reqStart = performance.now();
+
+            try {
+              const res = await fetch('/api/detect-frame', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ frame: dataUrl, conf: conf })
+              });
+
+              if (res.ok) {
+                const data = await res.json();
+                const latency = Math.round(performance.now() - reqStart);
+                document.getElementById('live-latency-pill').innerText = `Latency: ${latency} ms`;
+
+                const dets = data.detections || [];
+                activeDetections = dets;
+                lastDetectionTimestamp = performance.now();
+
+                if (dets.length > 0) {
+                  liveIncidentCount++;
+                  document.getElementById('kpi-vid-incidents').innerText = liveIncidentCount;
+                  document.getElementById('video-hazard-badge').innerText = `${liveIncidentCount} INCIDENTS LOGGED`;
+
+                  if (data.max_conf > peakLiveConf) {
+                    peakLiveConf = data.max_conf;
+                    document.getElementById('kpi-vid-conf').innerText = peakLiveConf.toFixed(3);
+                  }
+
+                  // Update severity card
+                  const sevElem = document.getElementById('kpi-vid-sev');
+                  sevElem.innerText = data.severity.toUpperCase();
+                  if (data.severity === 'High') {
+                    sevElem.className = 'text-2xl font-bold font-mono text-red-700 mt-1';
+                  } else if (data.severity === 'Medium') {
+                    sevElem.className = 'text-2xl font-bold font-mono text-amber-600 mt-1';
+                  }
+
+                  // Log to timeline table
+                  appendIncidentRow({
+                    frame: liveFrameIndex,
+                    timestamp_sec: origVideo.currentTime.toFixed(2),
+                    count: dets.length,
+                    max_conf: data.max_conf,
+                    severity: data.severity
+                  });
+                }
+              }
+            } catch (err) {
+              console.error("Frame inference error:", err);
+            } finally {
+              isProcessingFrame = false;
+            }
+          }
+        }
+
+        if (isRealtimeScanning) {
+          if ('requestVideoFrameCallback' in origVideo) {
+            origVideo.requestVideoFrameCallback(loop);
+          } else {
+            setTimeout(loop, 30);
+          }
+        }
+      };
+
+      if ('requestVideoFrameCallback' in origVideo) {
+        origVideo.requestVideoFrameCallback(loop);
+      } else {
+        setTimeout(loop, 30);
+      }
+    }
+
+    function stopRealtimeInspection() {
+      isRealtimeScanning = false;
+      
+      const btnSide = document.getElementById('btn-realtime-scan');
+      if (btnSide) {
+        btnSide.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btnSide.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+      }
+      document.getElementById('btn-realtime-label').innerText = '⚡ Live Real-Time Scan';
+
+      const btnMain = document.getElementById('btn-main-realtime');
+      if (btnMain) {
+        btnMain.classList.remove('bg-red-600', 'hover:bg-red-700');
+        btnMain.classList.add('bg-emerald-600', 'hover:bg-emerald-700');
+        document.getElementById('btn-main-realtime-text').innerText = 'Start Real-Time Frame Scan';
+      }
+
+      document.getElementById('live-hud-pill').classList.add('hidden');
+    }
+
+    // Inspect a single frame (e.g., when seeking the video bar)
+    async function inspectSingleFrameAtCurrentTime() {
+      const origVideo = document.getElementById('orig-video-player');
+      const canvas = document.getElementById('live-ann-canvas');
+      if (!origVideo || origVideo.readyState < 2) return;
+
+      const targetCtx = canvas.getContext('2d');
+      if (canvas.width !== origVideo.videoWidth && origVideo.videoWidth > 0) {
+        canvas.width = origVideo.videoWidth;
+        canvas.height = origVideo.videoHeight;
+      }
+      targetCtx.drawImage(origVideo, 0, 0, canvas.width, canvas.height);
+
+      const offCanvas = document.createElement('canvas');
+      offCanvas.width = canvas.width;
+      offCanvas.height = canvas.height;
+      const offCtx = offCanvas.getContext('2d');
+      offCtx.drawImage(origVideo, 0, 0, offCanvas.width, offCanvas.height);
+      const dataUrl = offCanvas.toDataURL('image/jpeg', 0.80);
+      const conf = parseFloat(document.getElementById('main-conf-input')?.value || document.getElementById('video-conf-input')?.value || document.getElementById('main-conf-slider')?.value || 0.20);
+
+      try {
+        const res = await fetch('/api/detect-frame', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ frame: dataUrl, conf: conf })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          targetCtx.drawImage(origVideo, 0, 0, canvas.width, canvas.height);
+          (data.detections || []).forEach(d => {
+            const [x1, y1, x2, y2] = d.bbox;
+            targetCtx.strokeStyle = "#ef4444";
+            targetCtx.lineWidth = 3;
+            targetCtx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+            const label = `Pothole ${(d.confidence * 100).toFixed(0)}%`;
+            targetCtx.fillStyle = "#ef4444";
+            targetCtx.fillRect(x1, Math.max(0, y1 - 22), 120, 22);
+            targetCtx.fillStyle = "#ffffff";
+            targetCtx.font = "bold 13px JetBrains Mono, monospace";
+            targetCtx.fillText(label, x1 + 5, Math.max(16, y1 - 6));
+          });
+        }
+      } catch (e) {
+        console.error("Single frame inspection error:", e);
+      }
+    }
+
+    // Attach native video listeners for automatic real-time sync
+    const origVideoElem = document.getElementById('orig-video-player');
+    if (origVideoElem) {
+      origVideoElem.addEventListener('play', () => {
+        if (!isRealtimeScanning) {
+          startRealtimeInspection();
+        }
+      });
+      origVideoElem.addEventListener('pause', () => {
+        if (isRealtimeScanning) {
+          stopRealtimeInspection();
+        }
+      });
+      origVideoElem.addEventListener('seeked', () => {
+        inspectSingleFrameAtCurrentTime();
+      });
+    }
+
+    function appendIncidentRow(occ) {
+      const tbody = document.getElementById('video-timeline-tbody');
+      // If first item, clear placeholder
+      if (trackedOccurrences.length === 0) {
+        tbody.innerHTML = '';
+      }
+      trackedOccurrences.push(occ);
+      document.getElementById('video-log-count').innerText = `${trackedOccurrences.length} Incident Frames`;
+
+      const m = Math.floor(occ.timestamp_sec / 60);
+      const s = (occ.timestamp_sec % 60).toFixed(1);
+      const timeStr = `${String(m).padStart(2, '0')}:${String(s).padStart(4, '0')}`;
+
+      const row = document.createElement('tr');
+      row.className = "hover:bg-slate-50 transition-colors";
+      const sevClass = occ.severity === 'High' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800';
+
+      row.innerHTML = `
+        <td class="px-5 py-2 text-slate-500">#${String(occ.frame).padStart(3, '0')}</td>
+        <td class="px-5 py-2 text-slate-700">${timeStr}</td>
+        <td class="px-5 py-2 font-bold text-black">${occ.count} Cavity(ies)</td>
+        <td class="px-5 py-2 font-semibold text-slate-900">${(occ.max_conf || 0).toFixed(2)}</td>
+        <td class="px-5 py-2"><span class="px-2 py-0.5 rounded text-xs font-semibold ${sevClass}">${occ.severity}</span></td>
+        <td class="px-5 py-2 text-right"><button onclick="seekVideo(${occ.timestamp_sec})" class="text-xs text-black font-semibold hover:underline">Jump to ${timeStr}</button></td>
+      `;
+
+      tbody.insertBefore(row, tbody.firstChild);
+    }
+
+    // Full Server-side Processing Pipeline
+    async function startServerVideoDetection() {
+      stopRealtimeInspection();
+
+      const conf = (document.getElementById('main-conf-input') ? document.getElementById('main-conf-input').value : null) || (document.getElementById('video-conf-input') ? document.getElementById('video-conf-input').value : null) || document.getElementById('main-conf-slider')?.value || 0.20;
+      const sampleRate = (document.getElementById('main-sample-slider') ? document.getElementById('main-sample-slider').value : null) || document.getElementById('video-sample-slider').value;
+      const roadName = document.getElementById('video-road-name').value;
+      const lat = document.getElementById('video-lat').value;
+      const lon = document.getElementById('video-lon').value;
+
+      const formData = new FormData();
+      formData.append('conf', conf);
+      formData.append('sample_rate', sampleRate);
+      formData.append('road_name', roadName);
+      formData.append('lat', lat);
+      formData.append('lon', lon);
+
+      // Distinguish custom video vs sample video explicitly!
+      if (selectedVideoFile) {
+        formData.append('sample_mode', 'false');
+        formData.append('video', selectedVideoFile);
+      } else {
+        formData.append('sample_mode', 'true');
+      }
+
+      document.getElementById('video-loading').classList.remove('hidden');
+      const startTime = performance.now();
+
+      try {
+        const res = await fetch('/api/detect-video', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await res.json();
+        const duration = (performance.now() - startTime).toFixed(1);
+        document.getElementById('video-speed-pill').innerText = `Processed in ${data.processing_time_sec || (duration/1000).toFixed(1)}s`;
+
+        if (res.ok) {
+          currentVideoData = data;
+          renderServerVideoResults(data);
+        } else {
+          alert("Video detection failed: " + (data.error || "Unknown error"));
+        }
+      } catch (err) {
+        console.error("Video processing error:", err);
+        alert("Failed to communicate with video backend.");
+      } finally {
+        document.getElementById('video-loading').classList.add('hidden');
+      }
+    }
+
+    function renderServerVideoResults(data) {
+      // Hide live canvas, show rendered video player
+      document.getElementById('live-ann-canvas').classList.add('hidden');
+      const annPlayer = document.getElementById('ann-video-player');
+      annPlayer.classList.remove('hidden');
+
+      if (data.annotated_video_url) {
+        annPlayer.src = data.annotated_video_url;
+        annPlayer.load();
+        annPlayer.play().catch(e => console.log(e));
+
+        const dlBtn = document.getElementById('btn-download-video');
+        dlBtn.href = data.annotated_video_url;
+        dlBtn.classList.remove('hidden');
+      }
+
+      // KPIs
+      document.getElementById('kpi-vid-frames').innerText = data.total_frames || 0;
+      document.getElementById('kpi-vid-fps').innerText = `${data.fps || 20} FPS • ${data.duration_sec || 0}s duration`;
+      document.getElementById('kpi-vid-incidents').innerText = data.occurrences_count || 0;
+      document.getElementById('kpi-vid-conf').innerText = data.max_conf ? data.max_conf.toFixed(3) : '0.000';
+      
+      const sev = data.severity || 'Medium';
+      const sevElem = document.getElementById('kpi-vid-sev');
+      sevElem.innerText = sev.toUpperCase();
+      if (sev === 'High') {
+        sevElem.className = 'text-2xl font-bold font-mono text-red-700 mt-1';
+      } else if (sev === 'Medium') {
+        sevElem.className = 'text-2xl font-bold font-mono text-amber-600 mt-1';
+      }
+
+      document.getElementById('video-hazard-badge').innerText = `${data.occurrences_count || 0} HAZARDS LOGGED`;
+      document.getElementById('video-save-heading').innerText = data.road_name || 'Dashcam Survey Corridor';
+
+      // Rebuild occurrences ledger
+      const tbody = document.getElementById('video-timeline-tbody');
+      tbody.innerHTML = '';
+      const occurrences = data.occurrences || [];
+      document.getElementById('video-log-count').innerText = `${occurrences.length} Incident Frames`;
+
+      if (occurrences.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-5 py-4 text-center text-slate-400 font-sans">No hazardous cavities identified in this video segment.</td></tr>`;
+      } else {
+        occurrences.slice(0, 30).forEach(occ => {
+          const row = document.createElement('tr');
+          row.className = "hover:bg-slate-50 transition-colors";
+          const sevClass = occ.severity === 'High' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800';
+
+          row.innerHTML = `
+            <td class="px-5 py-2 text-slate-500">Frame #${String(occ.frame).padStart(3, '0')}</td>
+            <td class="px-5 py-2 text-slate-700">${occ.timestamp_display} (${occ.timestamp_sec}s)</td>
+            <td class="px-5 py-2 font-bold text-black">${occ.count} Cavity(ies)</td>
+            <td class="px-5 py-2 font-semibold text-slate-900">${occ.max_conf.toFixed(2)}</td>
+            <td class="px-5 py-2"><span class="px-2 py-0.5 rounded text-xs font-semibold ${sevClass}">${occ.severity}</span></td>
+            <td class="px-5 py-2 text-right"><button onclick="seekVideo(${occ.timestamp_sec})" class="text-xs text-black font-semibold hover:underline">Jump to ${occ.timestamp_display}</button></td>
+          `;
+          tbody.appendChild(row);
+        });
+      }
+    }
+
+    function seekVideo(seconds) {
+      const p1 = document.getElementById('orig-video-player');
+      const p2 = document.getElementById('ann-video-player');
+      p1.currentTime = seconds;
+      if (!p2.classList.contains('hidden')) {
+        p2.currentTime = seconds;
+        p2.play().catch(e => console.log(e));
+      }
+    }
+
+    async function saveVideoToDatabase() {
+      const occurrences = (currentVideoData && currentVideoData.occurrences) ? currentVideoData.occurrences : trackedOccurrences;
+      if (!occurrences || occurrences.length === 0) {
+        alert("Please run video detection or real-time scan first to detect potholes!");
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-video-db');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">sync</span><span>Saving...</span>';
+
+      try {
+        const roadName = document.getElementById('video-road-name').value;
+        const lat = parseFloat(document.getElementById('video-lat').value) || 18.5204;
+        const lon = parseFloat(document.getElementById('video-lon').value) || 73.8567;
+
+        const payload = {
+          lat: lat,
+          lon: lon,
+          road_name: roadName,
+          address: `${roadName} (Dashcam Survey)`,
+          detections: occurrences.slice(0, 5).map(o => ({
+            confidence: o.max_conf || 0.85,
+            area_pct: 3.5,
+            bbox: [100, 100, 400, 300],
+            class_name: 'pothole'
+          })),
+          saved_image_rel: "sample_images/sample_city_pothole_annotated.jpg"
+        };
+
+        const res = await fetch('/api/reports', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+          btn.innerHTML = '<span class="material-symbols-outlined text-[18px] text-emerald-300">done_all</span><span>Survey Saved to DB</span>';
+          btn.classList.add('bg-emerald-600');
+          alert("✅ Video Survey successfully committed to SQLite database and synced with Heatmap!");
+        }
+      } catch (err) {
+        console.error("Save error:", err);
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    // ==========================================
+    // AUTOMATIC BROWSER GPS DETECTION & REVERSE GEOCODING
+    // ==========================================
+    let gpsWatchId = null;
+    let lastGeocodedLat = null;
+    let lastGeocodedLon = null;
+
+    async function autoDetectBrowserGPS(userInitiated = false) {
+      const badge = document.getElementById('video-gps-badge');
+      const btnText = document.getElementById('btn-gps-text');
+      const roadInput = document.getElementById('video-road-name');
+      const latInput = document.getElementById('video-lat');
+      const lonInput = document.getElementById('video-lon');
+
+      if (!('geolocation' in navigator)) {
+        if (badge) {
+          badge.className = 'text-[10px] bg-red-100 text-red-700 px-2 py-0.5 rounded font-mono font-medium';
+          badge.innerText = 'GPS NOT SUPPORTED';
+        }
+        if (userInitiated) alert('Geolocation is not supported by your browser or environment.');
+        return;
+      }
+
+      if (badge) {
+        badge.className = 'text-[10px] bg-amber-100 text-amber-800 px-2 py-0.5 rounded font-mono font-medium animate-pulse';
+        badge.innerText = 'ACQUIRING GPS...';
+      }
+      if (btnText) btnText.innerText = 'Acquiring Browser GPS...';
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const accuracy = Math.round(position.coords.accuracy || 10);
+
+          if (latInput) latInput.value = lat.toFixed(6);
+          if (lonInput) lonInput.value = lon.toFixed(6);
+
+          if (badge) {
+            badge.className = 'text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-mono font-semibold flex items-center gap-1';
+            badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span><span>LIVE GPS (±${accuracy}m)</span>`;
+          }
+          if (btnText) {
+            btnText.innerText = 'GPS Acquired';
+            setTimeout(() => { if (btnText) btnText.innerText = 'Auto-Detect Browser GPS'; }, 3000);
+          }
+
+          // Reverse geocode to corridor/road name
+          await reverseGeocodeAndUpdate(lat, lon);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error);
+          let errMsg = 'GPS UNAVAILABLE';
+          let detailedMsg = 'Could not acquire browser GPS location.';
+          if (error.code === error.PERMISSION_DENIED) {
+            errMsg = 'GPS PERMISSION DENIED';
+            detailedMsg = 'Browser location permission was denied. Please allow location access in your browser address bar.';
+          } else if (error.code === error.TIMEOUT) {
+            errMsg = 'GPS TIMEOUT';
+            detailedMsg = 'Acquiring GPS timed out.';
+          }
+
+          if (badge) {
+            badge.className = 'text-[10px] bg-neutral-100 text-neutral-600 px-2 py-0.5 rounded font-mono font-medium';
+            badge.innerText = errMsg;
+          }
+          if (btnText) btnText.innerText = 'Auto-Detect Browser GPS';
+          if (roadInput && (roadInput.value === 'Detecting location...' || !roadInput.value)) {
+            roadInput.value = 'Urban Corridor (GPS Denied - Manual)';
+          }
+          if (userInitiated) alert(detailedMsg);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    async function reverseGeocodeAndUpdate(lat, lon) {
+      const roadInput = document.getElementById('video-road-name');
+      if (roadInput) roadInput.value = 'Resolving road name...';
+
+      try {
+        const resp = await fetch(`/api/reverse-geocode?lat=${lat}&lon=${lon}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.road_name) {
+            if (roadInput) roadInput.value = data.road_name;
+            lastGeocodedLat = lat;
+            lastGeocodedLon = lon;
+            return;
+          }
+        }
+      } catch (e) {
+        console.warn('Reverse geocode failed:', e);
+      }
+
+      if (roadInput) {
+        roadInput.value = `Road Corridor (${lat.toFixed(4)}, ${lon.toFixed(4)})`;
+      }
+    }
+
+    function toggleContinuousGPSTracking(enable) {
+      const badge = document.getElementById('video-gps-badge');
+      if (enable) {
+        if (!('geolocation' in navigator)) {
+          alert('Geolocation not supported in this browser.');
+          document.getElementById('toggle-watch-gps').checked = false;
+          return;
+        }
+
+        if (gpsWatchId !== null) navigator.geolocation.clearWatch(gpsWatchId);
+
+        gpsWatchId = navigator.geolocation.watchPosition(
+          (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            const accuracy = Math.round(pos.coords.accuracy || 10);
+
+            const latInput = document.getElementById('video-lat');
+            const lonInput = document.getElementById('video-lon');
+            if (latInput) latInput.value = lat.toFixed(6);
+            if (lonInput) lonInput.value = lon.toFixed(6);
+
+            if (badge) {
+              badge.className = 'text-[10px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded font-mono font-semibold flex items-center gap-1';
+              badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping"></span><span>TRACKING VEHICLE (±${accuracy}m)</span>`;
+            }
+
+            // Only reverse geocode if moved substantially (> 50 meters approx 0.0005 deg)
+            if (!lastGeocodedLat || Math.hypot(lat - lastGeocodedLat, lon - lastGeocodedLon) > 0.0005) {
+              reverseGeocodeAndUpdate(lat, lon);
+            }
+          },
+          (err) => {
+            console.warn('GPS Watch error:', err);
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 3000,
+            timeout: 15000
+          }
+        );
+      } else {
+        if (gpsWatchId !== null) {
+          navigator.geolocation.clearWatch(gpsWatchId);
+          gpsWatchId = null;
+        }
+        if (badge) {
+          badge.className = 'text-[10px] bg-neutral-100 text-neutral-700 px-2 py-0.5 rounded font-mono font-medium';
+          badge.innerText = 'GPS IDLE';
+        }
+      }
+    }
+
+    // Automatically detect GPS on page load!
+    window.addEventListener('DOMContentLoaded', () => {
+      autoDetectBrowserGPS(false);
+    });
+  </script>
+</body>
+</html>

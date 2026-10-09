@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pothole Reporter</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+:root{--bg:#fafbfc;--card:#fff;--ink:#111827;--mute:#6b7280;--line:#e5e7eb;--brand:#2563eb;--red:#dc2626;--amber:#d97706;--green:#16a34a;--r:18px}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1116;--card:#171b22;--ink:#f3f4f6;--mute:#9ca3af;--line:#272d38;--brand:#6c9bff}}
+*{box-sizing:border-box}
+body{margin:0;font:17px/1.5 system-ui,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+.wrap{max-width:640px;margin:auto;padding:0 18px}
+header{padding:26px 0 0}
+h1{margin:0;font-size:1.35rem;font-weight:800;letter-spacing:-.01em}
+nav{display:flex;gap:26px;margin-top:14px;border-bottom:1px solid var(--line)}
+nav button{padding:10px 0;border:0;background:none;font:inherit;font-weight:600;color:var(--mute);cursor:pointer;border-bottom:3px solid transparent;margin-bottom:-1px}
+nav button.on{color:var(--ink);border-color:var(--brand)}
+main{padding:24px 0 30px}
+section{display:none}section.on{display:block}
+
+/* buttons & inputs */
+button,input,select{font:inherit;color:var(--ink)}
+.btn{padding:14px 18px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-weight:700;cursor:pointer}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:#fff;width:100%;font-size:1.05rem}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.link{background:none;border:0;color:var(--mute);cursor:pointer;padding:8px;font-size:.95rem;text-decoration:underline}
+input[type=text],input:not([type]){width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card)}
+
+/* step 1: add photo */
+.start{display:block;text-align:center;padding:64px 20px;border-radius:var(--r);border:2px dashed var(--line);cursor:pointer;background:var(--card)}
+.start:hover,.start.over{border-color:var(--brand)}
+.start .ic{font-size:3rem;line-height:1}
+.start b{display:block;font-size:1.25rem;margin:12px 0 4px}
+.start span{color:var(--mute)}
+
+/* step 2: result */
+.res{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:18px}
+.res img{width:100%;display:block}
+.res .body{padding:18px}
+.verdict{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:1.3rem;font-weight:800}
+.chip{font-size:.78rem;font-weight:700;padding:3px 11px;border-radius:99px;color:#fff;background:#64748b}
+.High,.Critical{background:var(--red)}.Medium,.Under\ Review{background:var(--amber)}.Low,.Fixed{background:var(--green)}
+.sub{color:var(--mute);font-size:.93rem;margin-top:4px}
+.res .btn{margin-top:16px}
+.loc{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:18px}
+.loc b{display:block;margin-bottom:10px}
+.loc .row{display:flex;gap:8px;margin-top:8px}
+.done{display:flex;gap:8px;align-items:center;margin-top:16px;padding:12px 14px;border-radius:12px;background:#ecfdf3;color:#067647;font-weight:700}
+.again{text-align:center}
+
+/* map tab */
+#map{height:52vh;min-height:320px;border-radius:var(--r);border:1px solid var(--line)}
+h2{font-size:1rem;margin:26px 0 10px;color:var(--mute);font-weight:700}
+.item{display:flex;gap:12px;align-items:center;padding:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;margin-bottom:10px}
+.item img{width:58px;height:58px;border-radius:10px;object-fit:cover;background:var(--line);flex:none}
+.item .t{flex:1;min-width:0}
+.item .t b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .t small{color:var(--mute)}
+.item select{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:7px 8px;font-size:.88rem}
+.x{border:0;background:none;color:var(--mute);font-size:1.2rem;cursor:pointer;padding:4px 8px}
+.x:hover{color:var(--red)}
+.empty{text-align:center;color:var(--mute);padding:36px 10px}
+.fix{color:var(--mute);font-size:.9rem;text-align:center;margin-top:18px}
+.fix a{color:var(--brand);font-weight:600}
+footer{text-align:center;padding:10px 0 40px}
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#111827;color:#fff;padding:11px 20px;border-radius:99px;display:none;z-index:9999;font-size:.95rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>🛣️ Pothole Reporter</h1>
+    <nav id="nav">
+      <button data-t="report" class="on">Report</button>
+      <button data-t="seen">Map</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- REPORT -->
+    <section id="report" class="on">
+      <label class="start" id="start">
+        <div class="ic">📷</div>
+        <b>Add a photo of the road</b>
+        <span>We'll find the potholes for you</span>
+        <input id="files" type="file" accept="image/*" multiple hidden>
+      </label>
+
+      <div id="where" class="loc" style="display:none">
+        <b>📍 Where is this?</b>
+        <button class="btn" id="gps" style="width:100%">Use my current location</button>
+        <div class="row"><input id="addr" placeholder="or type a road or area"><button class="btn" id="find">Find</button></div>
+        <div class="sub" id="locmsg"></div>
+      </div>
+
+      <div id="results"></div>
+    </section>
+
+    <!-- MAP -->
+    <section id="seen">
+      <div id="map"></div>
+      <h2 id="count"></h2>
+      <div id="list"></div>
+      <div class="fix" id="agency"></div>
+    </section>
+  </main>
+
+  <footer><button class="link" id="nuke">Reset app and delete all data</button></footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const SEV={High:"Serious",Medium:"Moderate",Low:"Minor",None:"None"};
+const COLOR={High:"#dc2626",Medium:"#d97706",Low:"#16a34a"};
+const STAT={Reported:"Reported",Critical:"Urgent","Under Review":"Being checked",Fixed:"Fixed"};
+let loc=null,results=[],reports=[],map,mine,heat;
+
+const toast=m=>{const t=$("#toast");t.textContent=m;t.style.display="block";setTimeout(()=>t.style.display="none",2400)};
+function show(t){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+  document.querySelectorAll("section").forEach(s=>s.classList.toggle("on",s.id===t));
+  if(t==="seen"){initMap();load();setTimeout(()=>map.invalidateSize(),60)}
+}
+$("#nav").onclick=e=>e.target.dataset.t&&show(e.target.dataset.t);
+
+/* ---------- location: only asked when a photo has no GPS ---------- */
+function setLoc(l,m){loc=l;$("#locmsg").textContent="✅ "+m;render()}
+$("#find").onclick=async()=>{
+  const q=$("#addr").value.trim();if(!q)return;$("#locmsg").textContent="Searching…";
+  const r=await(await fetch("/api/geocode?q="+encodeURIComponent(q))).json();
+  r?setLoc(r,r.address.slice(0,70)):$("#locmsg").textContent="Not found. Try adding the city name.";
+};
+$("#gps").onclick=()=>navigator.geolocation.getCurrentPosition(
+  p=>setLoc({lat:p.coords.latitude,lon:p.coords.longitude,address:"Current location",road:""},"Using your current location"),
+  ()=>toast("Allow location access, or type the place"));
+
+/* ---------- step 1: add photo ---------- */
+const start=$("#start");
+["dragover","dragleave","drop"].forEach(ev=>start.addEventListener(ev,e=>{e.preventDefault();
+  start.classList.toggle("over",ev==="dragover");if(ev==="drop")run(e.dataTransfer.files)}));
+$("#files").onchange=e=>run(e.target.files);
+
+async function run(files){
+  if(!files.length)return;
+  start.style.display="none";
+  $("#results").innerHTML='<div class="empty">⏳ Looking for potholes…</div>';
+  const fd=new FormData();[...files].forEach(f=>fd.append("files",f));fd.append("conf","0.4");
+  try{results=await(await fetch("/api/detect",{method:"POST",body:fd})).json()}
+  catch{$("#results").innerHTML='<div class="empty">Something went wrong.</div><div class="again"><button class="btn" onclick="reset()">Try again</button></div>';return}
+  render();
+}
+function reset(){results=[];loc=null;$("#files").value="";start.style.display="block";
+  $("#where").style.display="none";$("#locmsg").textContent="";$("#results").innerHTML=""}
+
+/* ---------- step 2: result ---------- */
+function render(){
+  if(!results.length)return;
+  $("#where").style.display=results.some(r=>r.count&&r.lat==null&&!r.saved)?"block":"none";
+  $("#results").innerHTML=results.map((r,i)=>{
+    if(r.error)return`<div class="res"><div class="body">${esc(r.name)}: ${esc(r.error)}</div></div>`;
+    const ok=r.lat!=null||loc;
+    const head=r.count?`${r.count} pothole${r.count>1?"s":""} found`:"No potholes found 🎉";
+    let act="";
+    if(r.count&&r.saved)act='<div class="done">✅ Reported. It is now on the map.</div>';
+    else if(r.count)act=`<button class="btn primary" data-i="${i}" ${ok?"":"disabled"}>${ok?"Report this pothole":"Add the location first"}</button>`;
+    return`<div class="res"><img src="${r.image}" alt="">
+      <div class="body"><div class="verdict">${head}${r.count?`<span class="chip ${r.severity}">${SEV[r.severity]}</span>`:""}</div>
+      ${r.lat!=null?'<div class="sub">📍 Location found in the photo</div>':""}${act}</div></div>`}).join("")
+    +`<div class="again">${results.some(r=>r.saved)?'<button class="btn" onclick="show(\'seen\')">View on map</button> ':""}<button class="link" onclick="reset()">Add another photo</button></div>`;
+}
+$("#results").onclick=async e=>{
+  const i=e.target.dataset.i;if(i===undefined)return;
+  const r=results[i],p=r.lat!=null?{lat:r.lat,lon:r.lon,address:"From photo location",road:""}:loc;
+  e.target.disabled=true;
+  await fetch("/api/reports",{method:"POST",headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({lat:p.lat,lon:p.lon,address:p.address,road:p.road,count:r.count,avg_conf:r.avg_conf,severity:r.severity,image:r.image})});
+  r.saved=true;render();
+};
+
+/* ---------- map tab ---------- */
+function initMap(){
+  if(map)return;
+  const esri=t=>L.tileLayer(`https://server.arcgisonline.com/ArcGIS/rest/services/${t}/MapServer/tile/{z}/{y}/{x}`,{maxZoom:19,attribution:"Tiles © Esri"});
+  const street=esri("World_Street_Map"),sat=esri("World_Imagery"),city=L.layerGroup();
+  map=L.map("map",{layers:[street]}).setView([20.6,78.9],5);
+  mine=L.layerGroup().addTo(map);
+  L.control.layers({"Map":street,"Satellite":sat},{"Bengaluru complaints 2022":city}).addTo(map);
+  map.on("overlayadd",async e=>{
+    if(e.layer!==city||heat)return;
+    try{const c=await(await fetch("data/bengaluru.json")).json();
+      heat=L.heatLayer(c.points.map(p=>[p[0],p[1],.6]),{radius:14,blur:16,minOpacity:.3}).addTo(city);
+      map.setView([12.97,77.59],11)}
+    catch{toast("City data missing. Run prepare_data.py")}});
+  fetch("data/agencies.json").then(r=>r.json()).then(a=>{const g=a.roads_local;
+    $("#agency").innerHTML=`To get a pothole repaired, contact ${esc(g.name)}: call <a href="tel:${esc(g.helpline)}">${esc(g.helpline)}</a> or use their <a href="${esc(g.complaint_url)}" target="_blank" rel="noopener">complaint site</a>.`}).catch(()=>{});
+}
+async function load(){reports=await(await fetch("/api/reports")).json();drawMap();drawList()}
+function drawMap(){
+  mine.clearLayers();
+  reports.forEach(r=>L.circleMarker([r.lat,r.lon],{radius:10,color:"#fff",weight:2,fillColor:COLOR[r.severity]||"#2563eb",fillOpacity:.95})
+    .bindPopup(`<b>${esc(r.address||"Pothole")}</b><br>${r.num_potholes} pothole(s) · ${SEV[r.severity]||""}<br>${STAT[r.status]||r.status}`).addTo(mine));
+  if(reports.length)map.fitBounds(reports.map(r=>[r.lat,r.lon]),{maxZoom:16,padding:[40,40]});
+}
+function drawList(){
+  $("#count").textContent=reports.length?`Your reports (${reports.length})`:"";
+  $("#list").innerHTML=reports.length?reports.map(r=>`
+    <div class="item"><img src="/${esc(r.image_path)}" alt="" onerror="this.style.visibility='hidden'">
+      <div class="t"><b>${r.num_potholes} pothole${r.num_potholes>1?"s":""} · ${SEV[r.severity]||r.severity}</b>
+        <small>${esc(r.address||r.lat.toFixed(3)+", "+r.lon.toFixed(3))}</small></div>
+      <select data-id="${r.id}">${Object.entries(STAT).map(([k,v])=>`<option value="${k}" ${k===r.status?"selected":""}>${v}</option>`).join("")}</select>
+      <button class="x" data-del="${r.id}" title="Delete">✕</button></div>`).join("")
+   :'<div class="empty">Nothing reported yet.<br>Add a photo on the Report tab.</div>';
+}
+$("#list").onchange=async e=>{if(!e.target.dataset.id)return;
+  await fetch("/api/reports/"+e.target.dataset.id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({status:e.target.value})});
+  toast("Updated");load()};
+$("#list").onclick=async e=>{const id=e.target.dataset.del;if(!id||!confirm("Delete this report?"))return;
+  await fetch("/api/reports/"+id,{method:"DELETE"});load()};
+
+/* ---------- reset everything ---------- */
+$("#nuke").onclick=async()=>{
+  if(prompt("This permanently deletes ALL reports and photos.\n\nType RESET to continue:")!=="RESET")return;
+  const r=await fetch("/api/reset",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({confirm:"RESET"})});
+  if(r.ok){alert("Everything has been cleared.");location.href="/"}else toast("Reset failed");
+};
+</script>
+</body>
+</html>

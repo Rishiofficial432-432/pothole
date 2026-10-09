@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>{% block title %}Overview{% endblock %} | CivicRoad Intelligence</title>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        colors: { primary: "#000000", "inverse-primary": "#27272a", surface: "#f8fafc", "surface-border": "#e2e8f0", "text-primary": "#0f172a", "text-muted": "#64748b" },
+        fontFamily: { sans: ["Inter", "sans-serif"], mono: ["JetBrains Mono", "monospace"] }
+      } }
+    };
+  </script>
+  <style>
+    body { font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .no-scrollbar { scrollbar-width: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .skeleton { background: linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 37%,#f1f5f9 63%); background-size: 400% 100%; animation: sk 1.2s ease infinite; border-radius: .5rem; }
+    @keyframes sk { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+    .card-enter { animation: cin .25s ease both; }
+    @keyframes cin { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="bg-surface text-text-primary text-sm antialiased selection:bg-neutral-900 selection:text-white min-h-screen">
+
+  <!-- Header -->
+  <header class="fixed top-0 inset-x-0 h-16 lg:h-20 bg-white/95 backdrop-blur-md border-b border-surface-border z-50">
+    <div class="h-full px-3 sm:px-6 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 sm:gap-4 min-w-0">
+        <button id="nav-toggle" type="button" aria-label="Toggle menu" aria-controls="sidebar" aria-expanded="false"
+                class="lg:hidden w-10 h-10 shrink-0 rounded-lg border border-surface-border flex items-center justify-center text-slate-700 active:bg-slate-100">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <a href="/" class="flex items-center gap-3 min-w-0">
+          <div class="w-9 h-9 lg:w-10 lg:h-10 shrink-0 rounded-xl bg-black flex items-center justify-center text-white text-lg shadow-sm">🛣️</div>
+          <div class="min-w-0">
+            <div class="font-bold text-sm sm:text-base tracking-tight truncate">CivicRoad Intelligence</div>
+            <p class="hidden sm:block text-xs text-text-muted truncate">Detect potholes, tag GPS location &amp; build civic action heatmaps</p>
+          </div>
+        </a>
+      </div>
+      <div id="health-pill" class="shrink-0 flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-surface-border text-xs font-mono" aria-live="polite">
+        <span id="health-dot" class="w-2 h-2 rounded-full bg-slate-300"></span>
+        <span id="health-text" class="hidden sm:inline">Connecting…</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Drawer scrim (mobile) -->
+  <div id="scrim" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[35] lg:hidden"></div>
+
+  <!-- Sidebar: off-canvas drawer on mobile, fixed rail on desktop -->
+  <aside id="sidebar" class="fixed left-0 top-16 lg:top-20 bottom-0 w-[280px] max-w-[85vw] -translate-x-full lg:translate-x-0 transition-transform duration-200 bg-white border-r border-surface-border z-40 overflow-y-auto flex flex-col justify-between p-4">
+    <div class="flex flex-col gap-5">
+      {% block sidebar %}{% endblock %}
+    </div>
+    <div class="mt-6 flex flex-col gap-2">
+      <div class="flex items-center justify-between border-b border-surface-border pb-2">
+        <div class="flex items-center gap-2"><span class="material-symbols-outlined text-[18px] text-primary">analytics</span><span class="font-semibold text-sm">System Telemetry</span></div>
+        <span class="text-[11px] text-primary uppercase font-mono font-semibold">Live</span>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+        <div class="text-[10px] text-slate-500 uppercase font-mono">Model</div>
+        <div class="text-xs font-mono font-semibold text-slate-900 break-all" id="t-model">—</div>
+        <div class="text-[11px] text-slate-500">Classes: <span id="t-classes">—</span></div>
+        <div class="text-[11px] text-slate-500">Device: <span id="t-device">—</span></div>
+        <div class="text-[11px] text-slate-500" id="t-latency">—</div>
+      </div>
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+        <div class="text-[10px] text-slate-500 uppercase font-mono">Database</div>
+        <div class="text-xs font-mono font-semibold text-slate-900 break-all" id="t-db">—</div>
+        <div class="text-[11px] text-slate-500" id="t-journal">—</div>
+      </div>
+      <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono px-1">
+        <span id="t-map">—</span><span id="t-uptime">—</span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="lg:pl-[280px]">
+    <!-- Section nav: horizontally scrollable on small screens -->
+    {% set nav = [('/', 'Overview', 'dashboard'), ('/detect', '1. Detect Photos', 'search_check'), ('/video', '2. Video Survey', 'videocam'), ('/heatmap', '3. Heatmap', 'map'), ('/reports', '4. Reports', 'assignment'), ('/road-search', '5. Road Search', 'saved_search'), ('/bulk', '6. Bulk Survey', 'batch_prediction')] %}
+    <div class="fixed top-16 lg:top-20 left-0 lg:left-[280px] right-0 h-12 bg-white/90 backdrop-blur-md border-b border-surface-border z-30">
+      <nav id="main-nav" class="h-full flex items-center overflow-x-auto no-scrollbar px-2 sm:px-6 gap-1 whitespace-nowrap">
+        {% for href, label, icon in nav %}
+        {% set on = (request.path == href) %}
+        <a href="{{ href }}" {% if on %}aria-current="page"{% endif %}
+           class="{% if on %}nav-active border-black text-black bg-neutral-100 font-semibold{% else %}border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50 font-medium{% endif %} shrink-0 h-full flex items-center px-3 sm:px-4 gap-1.5 border-b-2 text-xs transition-colors">
+          <span class="material-symbols-outlined text-[16px]">{{ icon }}</span><span>{{ label }}</span>
+        </a>
+        {% endfor %}
+      </nav>
+    </div>
+
+    <main class="pt-32 lg:pt-36 px-3 sm:px-6 pb-12 min-h-screen">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  {% block modal %}{% endblock %}
+  <script src="{{ url_for('static', filename='js/cr.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+
+{% block sidebar %}
+<div class="flex flex-col gap-3">
+  <div class="flex items-center gap-2 border-b border-surface-border pb-2">
+    <span class="material-symbols-outlined text-[18px] text-primary">filter_alt</span>
+    <span class="font-semibold text-sm">Workflow status</span>
+  </div>
+  <div id="status-filters" class="flex flex-col gap-1"></div>
+  <div class="h-px bg-surface-border"></div>
+  <div class="text-xs text-slate-600 font-medium">Export current view</div>
+  <button id="btn-csv" type="button" class="w-full py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5"><span class="material-symbols-outlined text-[16px]">table_view</span>CSV</button>
+  <button id="btn-json" type="button" class="w-full py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5"><span class="material-symbols-outlined text-[16px] text-black">data_object</span>JSON</button>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto flex flex-col gap-4">
+
+  <div class="flex flex-col lg:flex-row lg:items-center gap-3 bg-white border border-surface-border p-3 sm:p-4 rounded-xl shadow-sm">
+    <div class="relative flex-1 min-w-0">
+      <span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+      <input id="q" type="search" autocomplete="off" placeholder="Search road, address or report #   ( press / )"
+             class="w-full pl-9 pr-3 py-2 text-xs rounded-lg border-slate-300 focus:ring-2 focus:ring-black/20 focus:border-black"/>
+    </div>
+    <div id="sev-pills" class="flex items-center p-0.5 bg-slate-100 border border-slate-200 rounded-lg gap-0.5 overflow-x-auto no-scrollbar"></div>
+    <div class="flex gap-2">
+      <select id="status-sel" aria-label="Filter by status" class="lg:hidden flex-1 text-xs rounded-lg border-slate-300 py-2"></select>
+      <select id="sort" aria-label="Sort reports" class="flex-1 lg:flex-none text-xs rounded-lg border-slate-300 py-2">
+        <option value="new">Newest first</option>
+        <option value="count">Most potholes</option>
+        <option value="conf">Highest confidence</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between text-xs text-slate-500 font-mono">
+    <span id="meta">&nbsp;</span>
+    <span class="flex items-center gap-2">
+      <span id="updated"></span>
+      <button id="refresh" type="button" aria-label="Refresh now" class="w-8 h-8 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 flex items-center justify-center text-slate-600"><span class="material-symbols-outlined text-[16px]">refresh</span></button>
+    </span>
+  </div>
+
+  <div id="list" class="flex flex-col gap-3" aria-live="polite"></div>
+  <div class="text-center"><button id="more" type="button" class="hidden px-4 py-2 text-xs font-semibold rounded-lg border border-slate-300 bg-white hover:bg-slate-50">Load more</button></div>
+  <div id="sentinel" class="h-px"></div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<div id="modal" class="hidden fixed inset-0 z-[60] items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="m-title">
+  <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-4 sm:p-6 shadow-2xl border border-surface-border">
+    <div class="flex items-center justify-between gap-3 pb-3 border-b border-surface-border mb-4">
+      <h3 class="font-bold text-base truncate" id="m-title">Report</h3>
+      <button id="m-close" type="button" aria-label="Close" class="w-9 h-9 shrink-0 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-500"><span class="material-symbols-outlined">close</span></button>
+    </div>
+    <div class="relative w-full aspect-video bg-slate-100 rounded-xl overflow-hidden border border-surface-border">
+      <img id="m-img" src="" alt="Evidence" class="w-full h-full object-contain"/>
+      <span id="m-sample" class="hidden absolute top-2 left-2 text-[10px] font-mono text-white bg-slate-700/90 px-2 py-0.5 rounded">SAMPLE IMAGE — no photo stored for this report</span>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs mt-4">
+      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200"><div class="text-[10px] text-slate-500 uppercase font-mono">Potholes</div><div class="font-bold font-mono" id="m-count">—</div></div>
+      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200"><div class="text-[10px] text-slate-500 uppercase font-mono">Severity</div><div class="font-bold font-mono" id="m-sev">—</div></div>
+      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200"><div class="text-[10px] text-slate-500 uppercase font-mono">Avg conf</div><div class="font-bold font-mono" id="m-conf">—</div></div>
+      <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200"><div class="text-[10px] text-slate-500 uppercase font-mono">Coordinates</div><div class="font-bold font-mono text-[11px] break-all" id="m-coords">—</div></div>
+    </div>
+    <p class="text-xs text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-200 mt-3 break-words" id="m-addr"></p>
+    <div class="mt-3 overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead><tr class="text-left text-slate-500 font-mono border-b border-slate-200"><th class="py-1.5 pr-3">#</th><th class="pr-3">Class</th><th class="pr-3">Conf</th><th class="pr-3">Severity</th><th>Area</th></tr></thead>
+        <tbody id="m-dets" class="font-mono"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% raw %}
+<script>
+(() => {
+  const { $, esc, fmt, api, toast, debounce, poll } = CR;
+  const PAGE = 20;
+  const SEV = ['High', 'Medium', 'Low'];
+  const STAT = ['Reported', 'In Progress', 'Repaired'];
+  const SEV_STYLE = {
+    High: ['#ef4444', 'bg-red-50 text-red-700 border-red-200'],
+    Medium: ['#f59e0b', 'bg-amber-50 text-amber-800 border-amber-200'],
+    Low: ['#10b981', 'bg-emerald-50 text-emerald-800 border-emerald-200'],
+    None: ['#94a3b8', 'bg-slate-100 text-slate-600 border-slate-200'],
+  };
+  const STAT_STYLE = {
+    Reported: 'bg-blue-50 text-blue-700 border-blue-200',
+    'In Progress': 'bg-amber-50 text-amber-800 border-amber-200',
+    Repaired: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+  };
+
+  const params = new URLSearchParams(location.search);
+  const pick = (v, ok, d) => (ok.includes(v) ? v : d);
+  const state = {
+    all: [], loaded: false, shown: PAGE,
+    q: params.get('q') || '',
+    sev: pick(params.get('sev'), SEV, 'all'),
+    status: pick(params.get('status'), STAT, 'all'),
+    sort: pick(params.get('sort'), ['new', 'count', 'conf'], 'new'),
+  };
+  let anim = true;
+  const sevOf = (r) => (SEV_STYLE[r.severity] ? r.severity : 'None');
+
+  function syncUrl() {
+    const p = new URLSearchParams();
+    if (state.q) p.set('q', state.q);
+    if (state.sev !== 'all') p.set('sev', state.sev);
+    if (state.status !== 'all') p.set('status', state.status);
+    if (state.sort !== 'new') p.set('sort', state.sort);
+    const s = p.toString();
+    history.replaceState(null, '', s ? '?' + s : location.pathname);
+  }
+
+  function view() {
+    const q = state.q.trim().toLowerCase();
+    const rows = state.all.filter((r) =>
+      (state.sev === 'all' || sevOf(r) === state.sev) &&
+      (state.status === 'all' || r.status === state.status) &&
+      (!q || `${r.id} ${r.road_name || ''} ${r.address || ''}`.toLowerCase().includes(q)));
+    const cmp = {
+      new: (a, b) => String(b.ts || '').localeCompare(String(a.ts || '')),
+      count: (a, b) => (b.num_potholes || 0) - (a.num_potholes || 0),
+      conf: (a, b) => (b.avg_conf || 0) - (a.avg_conf || 0),
+    }[state.sort];
+    return rows.sort(cmp);
+  }
+
+  function renderFilters() {
+    const cs = { all: state.all.length }, cv = { all: state.all.length };
+    STAT.forEach((s) => (cs[s] = 0));
+    SEV.forEach((s) => (cv[s] = 0));
+    state.all.forEach((r) => { cs[r.status] = (cs[r.status] || 0) + 1; const s = sevOf(r); if (s in cv) cv[s]++; });
+
+    $('#status-filters').innerHTML = ['all', ...STAT].map((s) => {
+      const on = state.status === s;
+      return `<button type="button" data-status="${esc(s)}" aria-pressed="${on}" class="flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-medium transition-colors ${on ? 'bg-neutral-100 text-black border-neutral-300 font-semibold' : 'border-slate-200 text-slate-700 hover:bg-slate-50'}"><span>${s === 'all' ? 'All statuses' : esc(s)}</span><span class="font-mono">${cs[s] || 0}</span></button>`;
+    }).join('');
+
+    $('#sev-pills').innerHTML = ['all', ...SEV].map((s) => {
+      const on = state.sev === s;
+      return `<button type="button" data-sev="${esc(s)}" aria-pressed="${on}" class="shrink-0 px-3 py-1.5 rounded text-xs font-medium transition-colors ${on ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900'}">${s === 'all' ? 'All' : s} (${cv[s] || 0})</button>`;
+    }).join('');
+
+    $('#status-sel').innerHTML = ['all', ...STAT].map((s) =>
+      `<option value="${esc(s)}"${state.status === s ? ' selected' : ''}>${s === 'all' ? 'All statuses' : esc(s)} (${cs[s] || 0})</option>`).join('');
+    $('#sort').value = state.sort;
+  }
+
+  function card(r) {
+    const sv = sevOf(r), [col, badge] = SEV_STYLE[sv];
+    const own = r.has_own_image !== false;
+    const opts = STAT.map((s) => `<option value="${esc(s)}"${s === r.status ? ' selected' : ''}>${esc(s)}</option>`).join('');
+    const chip = 'bg-slate-50 border border-slate-200 px-2 py-0.5 rounded';
+    return `
+<article data-id="${esc(r.id)}" class="relative bg-white border border-surface-border rounded-xl shadow-sm hover:shadow-md overflow-hidden transition-shadow ${anim ? 'card-enter' : ''}">
+  <div class="absolute left-0 top-0 bottom-0 w-1" style="background:${col}"></div>
+  <div class="p-3 sm:p-4 pl-4 sm:pl-5 flex flex-col md:flex-row gap-3 md:gap-4">
+    <button type="button" data-act="open" aria-label="Inspect report ${esc(r.id)}" class="relative w-full md:w-40 h-40 md:h-24 shrink-0 rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
+      <img src="${esc(r.image_url)}" loading="lazy" decoding="async" alt="Evidence for report ${esc(r.id)}" class="w-full h-full object-cover ${own ? '' : 'opacity-60'}"/>
+      <span class="absolute bottom-1 right-1 text-[10px] font-mono text-white bg-slate-900/80 px-1 rounded">${fmt.num(r.num_potholes)} box${r.num_potholes === 1 ? '' : 'es'}</span>
+      ${own ? '' : '<span class="absolute top-1 left-1 text-[10px] font-mono text-white bg-slate-700/90 px-1.5 rounded">SAMPLE IMAGE</span>'}
+    </button>
+    <div class="min-w-0 flex-1 flex flex-col gap-1.5">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="font-bold text-sm break-words">#${esc(r.id)} — ${esc(r.road_name || 'Unnamed road')}</span>
+        <span class="text-[11px] px-2 py-0.5 rounded-full border font-mono font-medium ${badge}">${sv === 'None' ? 'No severity' : sv + ' severity'}</span>
+        <span class="text-[11px] px-2 py-0.5 rounded-full border font-mono font-medium ${STAT_STYLE[r.status]}">${esc(r.status)}</span>
+      </div>
+      <p class="text-xs text-slate-500 break-words">${esc(r.address || 'No address recorded')}</p>
+      <div class="flex flex-wrap gap-1.5 text-[11px] font-mono text-slate-600">
+        <span class="${chip}">${esc(fmt.date(r.timestamp))}</span>
+        <span class="${chip}">Avg conf ${fmt.conf(r.avg_conf)}</span>
+        <span class="${chip}">${fmt.coord(r.lat)}, ${fmt.coord(r.lon)}</span>
+      </div>
+    </div>
+    <div class="flex md:flex-col gap-2 md:w-40 shrink-0">
+      <select data-act="status" aria-label="Status for report ${esc(r.id)}" class="flex-1 md:flex-none text-xs rounded-lg border-slate-300 py-1.5">${opts}</select>
+      <div class="flex gap-2">
+        <button type="button" data-act="open" class="flex-1 px-2.5 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 text-xs rounded-lg flex items-center justify-center gap-1"><span class="material-symbols-outlined text-[16px] text-slate-900">visibility</span>Inspect</button>
+        <button type="button" data-act="delete" aria-label="Delete report ${esc(r.id)}" class="px-2 py-1.5 bg-white hover:bg-red-50 text-red-600 border border-slate-300 hover:border-red-300 rounded-lg"><span class="material-symbols-outlined text-[16px]">delete</span></button>
+      </div>
+    </div>
+  </div>
+</article>`;
+  }
+
+  const SKELETON = '<div class="skeleton h-32"></div>'.repeat(3);
+  const EMPTY = `<div class="p-10 text-center bg-white rounded-xl border border-surface-border text-slate-500"><span class="material-symbols-outlined text-3xl text-slate-300">search_off</span><p class="font-medium text-xs mt-1">No reports match these filters.</p></div>`;
+
+  function render(animate = false) {
+    anim = animate;
+    renderFilters();
+    if (!state.loaded) { $('#list').innerHTML = SKELETON; return; }
+    const rows = view();
+    $('#meta').textContent = `${rows.length} of ${state.all.length} reports`;
+    $('#list').innerHTML = rows.length ? rows.slice(0, state.shown).map(card).join('') : EMPTY;
+    $('#more').classList.toggle('hidden', rows.length <= state.shown);
+  }
+
+  function more() {
+    const rows = view();
+    if (!state.loaded || state.shown >= rows.length) return;
+    anim = true;
+    $('#list').insertAdjacentHTML('beforeend', rows.slice(state.shown, state.shown + PAGE).map(card).join(''));
+    state.shown += PAGE;
+    $('#more').classList.toggle('hidden', rows.length <= state.shown);
+  }
+
+  const refilter = () => { state.shown = PAGE; syncUrl(); render(true); };
+
+  // ── Data ─────────────────────────────────────────────────────────────────────
+  let ctl = null;
+  async function load(manual = false) {
+    const ae = document.activeElement;
+    if (!manual && ae && ae.matches && ae.matches('#list select')) return; // don't yank an open dropdown
+    if (ctl) ctl.abort();
+    ctl = new AbortController();
+    try {
+      const d = await api('/api/reports', { signal: ctl.signal });
+      state.all = d.reports || [];
+      const first = !state.loaded;
+      state.loaded = true;
+      render(first);
+      $('#updated').textContent = 'Updated ' + new Date().toLocaleTimeString();
+      if (first && params.get('open')) openModal(params.get('open'));
+    } catch (e) {
+      if (e.name === 'AbortError') return;
+      if (!state.loaded) $('#list').innerHTML = `<div class="p-8 text-center bg-white rounded-xl border border-red-200 text-red-600 text-xs">Could not load reports: ${esc(e.message)}</div>`;
+      $('#updated').textContent = 'Offline — retrying…';
+      if (manual) toast(e.message, 'error');
+    }
+  }
+
+  async function setStatus(id, status) {
+    const r = state.all.find((x) => String(x.id) === String(id));
+    if (!r || r.status === status) return;
+    const prev = r.status;
+    r.status = status; render();               // optimistic
+    try {
+      await api(`/api/reports/${encodeURIComponent(id)}/status`, { method: 'POST', body: JSON.stringify({ status }) });
+      toast(`Report #${id} → ${status}`, 'success');
+    } catch (e) {
+      r.status = prev; render();               // roll back on failure
+      toast(e.message, 'error');
+    }
+  }
+
+  async function del(id) {
+    if (!confirm(`Delete report #${id}? This cannot be undone.`)) return;
+    try {
+      await api(`/api/reports/${encodeURIComponent(id)}`, { method: 'DELETE' });
+      state.all = state.all.filter((r) => String(r.id) !== String(id));
+      render();
+      toast(`Report #${id} deleted`, 'success');
+    } catch (e) { toast(e.message, 'error'); }
+  }
+
+  // ── Modal ────────────────────────────────────────────────────────────────────
+  let lastFocus = null;
+  function openModal(id) {
+    const r = state.all.find((x) => String(x.id) === String(id));
+    if (!r) return;
+    let dets = [];
+    try { dets = JSON.parse(r.detections || '[]'); } catch { /* keep empty */ }
+    $('#m-title').textContent = `#${r.id} — ${r.road_name || 'Unnamed road'}`;
+    const img = $('#m-img'); img.dataset.fb = ''; img.src = r.image_url;
+    $('#m-sample').classList.toggle('hidden', r.has_own_image !== false);
+    $('#m-count').textContent = fmt.num(r.num_potholes);
+    $('#m-sev').textContent = r.severity || '—';
+    $('#m-conf').textContent = fmt.conf(r.avg_conf);
+    $('#m-coords').textContent = `${fmt.coord(r.lat)}, ${fmt.coord(r.lon)}`;
+    $('#m-addr').textContent = r.address || 'No address recorded';
+    $('#m-dets').innerHTML = dets.length
+      ? dets.map((d, i) => `<tr class="border-b border-slate-100"><td class="py-1.5 pr-3">${i + 1}</td><td class="pr-3">${esc(d.class_name || d.class || '—')}</td><td class="pr-3">${fmt.conf(d.confidence)}</td><td class="pr-3">${esc(d.severity || '—')}</td><td>${d.area_pct == null ? '—' : esc(d.area_pct) + '%'}</td></tr>`).join('')
+      : '<tr><td colspan="5" class="py-3 text-slate-400 font-sans">No per-detection data stored for this report.</td></tr>';
+    lastFocus = document.activeElement;
+    const m = $('#modal'); m.classList.remove('hidden'); m.classList.add('flex');
+    document.body.classList.add('overflow-hidden');
+    $('#m-close').focus();
+  }
+  function closeModal() {
+    const m = $('#modal'); m.classList.add('hidden'); m.classList.remove('flex');
+    document.body.classList.remove('overflow-hidden');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  // ── Export (current filtered view) ───────────────────────────────────────────
+  function download(name, mime, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: mime }));
+    const a = Object.assign(document.createElement('a'), { href: url, download: name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+  const cell = (v) => {
+    let s = String(v ?? '');
+    if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;   // block spreadsheet formula injection
+    return `"${s.replace(/"/g, '""')}"`;
+  };
+  function exportCSV() {
+    const rows = view();
+    if (!rows.length) return toast('Nothing to export for this view', 'info');
+    const head = ['id', 'timestamp', 'road_name', 'address', 'lat', 'lon', 'num_potholes', 'severity', 'avg_conf', 'status'];
+    const body = rows.map((r) => [r.id, r.ts, r.road_name, r.address, r.lat, r.lon, r.num_potholes, r.severity, r.avg_conf, r.status].map(cell).join(','));
+    download(`civic_potholes_${Date.now()}.csv`, 'text/csv;charset=utf-8', [head.join(','), ...body].join('\n'));
+  }
+  function exportJSON() {
+    const rows = view();
+    if (!rows.length) return toast('Nothing to export for this view', 'info');
+    download(`civic_reports_${Date.now()}.json`, 'application/json', JSON.stringify(rows, null, 2));
+  }
+
+  // ── Events ───────────────────────────────────────────────────────────────────
+  $('#q').value = state.q;
+  $('#q').addEventListener('input', debounce((e) => { state.q = e.target.value; refilter(); }, 150));
+  $('#sort').addEventListener('change', (e) => { state.sort = e.target.value; refilter(); });
+  $('#status-sel').addEventListener('change', (e) => { state.status = e.target.value; refilter(); });
+  $('#sev-pills').addEventListener('click', (e) => { const b = e.target.closest('[data-sev]'); if (b) { state.sev = b.dataset.sev; refilter(); } });
+  $('#status-filters').addEventListener('click', (e) => { const b = e.target.closest('[data-status]'); if (b) { state.status = b.dataset.status; refilter(); } });
+
+  $('#list').addEventListener('click', (e) => {
+    const b = e.target.closest('[data-act]');
+    if (!b || b.tagName === 'SELECT') return;
+    const id = b.closest('article').dataset.id;
+    if (b.dataset.act === 'open') openModal(id);
+    if (b.dataset.act === 'delete') del(id);
+  });
+  $('#list').addEventListener('change', (e) => {
+    if (e.target.dataset.act === 'status') setStatus(e.target.closest('article').dataset.id, e.target.value);
+  });
+
+  $('#more').addEventListener('click', more);
+  new IntersectionObserver((es) => { if (es[0].isIntersecting) more(); }, { rootMargin: '400px' }).observe($('#sentinel'));
+
+  $('#m-close').addEventListener('click', closeModal);
+  $('#modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !$('#modal').classList.contains('hidden')) closeModal();
+    if (e.key === '/' && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) { e.preventDefault(); $('#q').focus(); }
+  });
+
+  $('#btn-csv').addEventListener('click', exportCSV);
+  $('#btn-json').addEventListener('click', exportJSON);
+
+  render(true);
+  const p = poll(() => load(false), 30000);
+  $('#refresh').addEventListener('click', () => load(true));
+})();
+</script>
+{% endraw %}
+{% endblock %}
